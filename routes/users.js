@@ -13,7 +13,7 @@ const { checkPasswordStandard } = require("../modules/checkPasswordStandard");
 const { checkEmailFormat } = require("../modules/checkEmailFormat");
 
 router.post("/signup", (req, res) => {
-  if (!checkBody(req.body, ["firstname","username", "password"])) {
+  if (!checkBody(req.body, ["email", "password"])) {
     res.json({ result: false, error: "Missing or empty fields" });
     return;
   }
@@ -39,16 +39,44 @@ router.post("/signup", (req, res) => {
     const hash = bcrypt.hashSync(req.body.password, 10);
     if (data === null) {
       const newUser = new User({
-       firstname: req.body.firstname,
-        username: req.body.username,
+        email: req.body.email,
         password: hash,
         token: uid2(32),
+        name: null,
+        firstName: null,
+        phoneNumber: null,
+        address: [
+          {
+            streetNumber: null,
+            streetName: null,
+            city: null,
+            zipCode: null,
+          },
+        ],
+        preferences: [
+          {
+            jobTitle: null,
+            sector: null,
+            contractType: null,
+            remote: null,
+            city: null,
+            region: null,
+            // createdAt: null, PLUS BESOIN DE CREER CAR GENERER AUTOMATIQUEMENT DANS LE SCHEMA
+            // updatedAt: null,
+          },
+        ],
+
+        alerts: null,
+        favorites : [],
+        applications : [],
+     // ou  createdAt : Date.now(), si on avait pas déjà automatisé via le Schema la data ( { type: Date, default: Date.now }  )
+        // updatedAt : null,
+        
       });
-      if(checkPassword(req.body.password)) {
 
       newUser.save().then(() => {
-        res.json({ result: true , token: newUser.token});
-      });}
+        res.json({ result: true, token: newUser.token });
+      });
     } else {
       // User already exists in database
       res.json({ result: false, error: "User already exists" });
@@ -92,42 +120,5 @@ router.post("/signin", (req, res) => {
 //     res.json({ result: true, canBookmark: data.canBookmark });
 //   });
 // });
-router.put("/", (req, res) => {
-  const token = req.body.token;
-  if (!token) {
-    return res.json({ result: false, message: "Pas find" });
-  }
-  User.updateOne(
-    { token },
-    {
-      name: req.body.name,
-      firstName: req.body.firstName,
-      phoneNumber: req.body.phoneNumber,
-      address: [
-        {
-          streetNumber: req.body.streetNumber,
-          streetName: req.body.streetName,
-          city: req.body.city,
-          zipCode: req.body.zipCode,
-        },
-      ],
-      preferences: [
-        {
-          jobTitle: req.body.jobTitle,
-          sector: req.body.sector,
-          contractType: req.body.contractType,
-          remote: req.body.remote,
-          city: req.body.cityJob,
-          region: req.body.region,
-        },
-      ],
-    }
-  ).then((user) => {
-    if (!user) {
-      return res.json({ result: false, message: "User not found" });
-    }
-    res.json({ result: true, message: user });
-  });
-});
 
 module.exports = router;
