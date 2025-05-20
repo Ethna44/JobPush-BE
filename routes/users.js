@@ -8,10 +8,10 @@ const bcrypt = require("bcrypt");
 require("../models/connection");
 const User = require("../models/users");
 const { checkBody } = require("../modules/checkBody");
-const { checkPassword} = require('../modules/checkPasswords');
+const { checkPassword } = require("../modules/checkPasswords");
 
 router.post("/signup", (req, res) => {
-  if (!checkBody(req.body, ["firstname","username", "password"])) {
+  if (!checkBody(req.body, ["firstName", "username", "password"])) {
     res.json({ result: false, error: "Missing or empty fields" });
     return;
   }
@@ -21,16 +21,16 @@ router.post("/signup", (req, res) => {
     const hash = bcrypt.hashSync(req.body.password, 10);
     if (data === null) {
       const newUser = new User({
-       firstname: req.body.firstname,
+        firstName: req.body.firstName,
         username: req.body.username,
         password: hash,
         token: uid2(32),
       });
-      if(checkPassword(req.body.password)) {
-
-      newUser.save().then(() => {
-        res.json({ result: true , token: newUser.token});
-      });}
+      if (checkPassword(req.body.password)) {
+        newUser.save().then(() => {
+          res.json({ result: true, token: newUser.token });
+        });
+      }
     } else {
       // User already exists in database
       res.json({ result: false, error: "User already exists" });
@@ -48,7 +48,12 @@ router.post("/signin", (req, res) => {
     console.log(req.body.username);
     console.log(req.body.password);
     if (data && bcrypt.compareSync(req.body.password, data.password)) {
-      res.json({ result: true, token: data.token,firstname:data.firstname, msg: "Access Granted" });
+      res.json({
+        result: true,
+        token: data.token,
+        firstname: data.firstname,
+        msg: "Access Granted",
+      });
     } else {
       res.json({ result: false, msg: "User not found" });
     }
@@ -64,5 +69,42 @@ router.post("/signin", (req, res) => {
 //     res.json({ result: true, canBookmark: data.canBookmark });
 //   });
 // });
+router.put("/", (req, res) => {
+  const token = req.body.token;
+  if (!token) {
+    return res.json({ result: false, message: "Pas find" });
+  }
+  User.updateOne(
+    { token },
+    {
+      name: req.body.name,
+      firstName: req.body.firstName,
+      phoneNumber: req.body.phoneNumber,
+      address: [
+        {
+          streetNumber: req.body.streetNumber,
+          streetName: req.body.streetName,
+          city: req.body.city,
+          zipCode: req.body.zipCode,
+        },
+      ],
+      preferences: [
+        {
+          jobTitle: req.body.jobTitle,
+          sector: req.body.sector,
+          contractType: req.body.contractType,
+          remote: req.body.remote,
+          city: req.body.cityJob,
+          region: req.body.region,
+        },
+      ],
+    }
+  ).then((user) => {
+    if (!user) {
+      return res.json({ result: false, message: "User not found" });
+    }
+    res.json({ result: true, message: user });
+  });
+});
 
 module.exports = router;
