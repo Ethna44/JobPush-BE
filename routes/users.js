@@ -159,4 +159,22 @@ router.put("/", (req, res) => {
   });
 });
 
+router.put("/alerts", (req, res) => {
+  const token = req.body.token;
+  if (!token) {
+    return res.json({ result: false, message: "Pas find" });
+  }
+  User.updateOne(
+    { token },
+    {
+      alerts: req.body.alerts,
+    }
+  ).then((user) => {
+    if (!user) {
+      return res.json({ result: false, message: "User not found" });
+    }
+    res.json({ result: true,});
+  });
+});
+
 module.exports = router;
