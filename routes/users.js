@@ -8,35 +8,86 @@ const bcrypt = require("bcrypt");
 require("../models/connection");
 const User = require("../models/users");
 const { checkBody } = require("../modules/checkBody");
-const { checkPassword} = require('../modules/checkPasswords');
+const { checkPassword } = require("../modules/checkPassword");
+const { checkPasswordStandard } = require("../modules/checkPasswordStandard");
+const { checkEmailFormat } = require("../modules/checkEmailFormat");
 
 router.post("/signup", (req, res) => {
-  if (!checkBody(req.body, ["firstname","username", "password"])) {
+  if (!checkBody(req.body, ["email", "password"])) {
     res.json({ result: false, error: "Missing or empty fields" });
     return;
   }
+  const checkEmailResult = checkEmailFormat(req.body.email);
+  if (!checkEmailResult.result) {
+    return res.json({ result: checkEmailResult });
+  }
+  const checkPasswordStandardResult = checkPasswordStandard(req.body.password);
+  if (!checkPasswordStandardResult.result) {
+    return res.json({ result: checkPasswordStandardResult });
+  }
+
+  const checkPasswordResult = checkPassword(
+    req.body.password,
+    req.body.confirmPassword
+  );
+  if (!checkPasswordResult.result) {
+    return res.json({ result: checkPasswordResult });
+  }
 
   // Check if the user has not already been registered
-  User.findOne({ username: req.body.username }).then((data) => {
+  User.findOne({ email: req.body.email }).then((data) => {
     const hash = bcrypt.hashSync(req.body.password, 10);
     if (data === null) {
       const newUser = new User({
-       firstname: req.body.firstname,
-        username: req.body.username,
+        email: req.body.email,
         password: hash,
         token: uid2(32),
+        name: null,
+        firstName: null,
+        phoneNumber: null,
+        address: [
+          {
+            streetNumber: null,
+            streetName: null,
+            city: null,
+            zipCode: null,
+          },
+        ],
+        preferences: [
+          {
+            jobTitle: null,
+            sector: null,
+            contractType: null,
+            remote: null,
+            city: null,
+            region: null,
+            // createdAt: null, PLUS BESOIN DE CREER CAR GENERER AUTOMATIQUEMENT DANS LE SCHEMA
+            // updatedAt: null,
+          },
+        ],
+
+        alerts: null,
+        favorites : [],
+        applications : [],
+     // ou  createdAt : Date.now(), si on avait pas déjà automatisé via le Schema la data ( { type: Date, default: Date.now }  )
+        // updatedAt : null,
+        
       });
-      if(checkPassword(req.body.password)) {
 
       newUser.save().then(() => {
-        res.json({ result: true , token: newUser.token});
-      });}
+        res.json({ result: true, token: newUser.token });
+      });
     } else {
       // User already exists in database
       res.json({ result: false, error: "User already exists" });
     }
   });
 });
+
+
+
+
+
 
 router.post("/signin", (req, res) => {
   if (!checkBody(req.body, ["username", "password"])) {
@@ -48,7 +99,12 @@ router.post("/signin", (req, res) => {
     console.log(req.body.username);
     console.log(req.body.password);
     if (data && bcrypt.compareSync(req.body.password, data.password)) {
-      res.json({ result: true, token: data.token,firstname:data.firstname, msg: "Access Granted" });
+      res.json({
+        result: true,
+        token: data.token,
+        firstname: data.firstname,
+        msg: "Access Granted",
+      });
     } else {
       res.json({ result: false, msg: "User not found" });
     }
