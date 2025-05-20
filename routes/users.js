@@ -8,35 +8,58 @@ const bcrypt = require("bcrypt");
 require("../models/connection");
 const User = require("../models/users");
 const { checkBody } = require("../modules/checkBody");
-const { checkPassword } = require("../modules/checkPasswords");
+const { checkPassword } = require("../modules/checkPassword");
+const { checkPasswordStandard } = require("../modules/checkPasswordStandard");
+const { checkEmailFormat } = require("../modules/checkEmailFormat");
 
 router.post("/signup", (req, res) => {
-  if (!checkBody(req.body, ["firstName", "username", "password"])) {
+  if (!checkBody(req.body, ["firstname","username", "password"])) {
     res.json({ result: false, error: "Missing or empty fields" });
     return;
   }
+  const checkEmailResult = checkEmailFormat(req.body.email);
+  if (!checkEmailResult.result) {
+    return res.json({ result: checkEmailResult });
+  }
+  const checkPasswordStandardResult = checkPasswordStandard(req.body.password);
+  if (!checkPasswordStandardResult.result) {
+    return res.json({ result: checkPasswordStandardResult });
+  }
+
+  const checkPasswordResult = checkPassword(
+    req.body.password,
+    req.body.confirmPassword
+  );
+  if (!checkPasswordResult.result) {
+    return res.json({ result: checkPasswordResult });
+  }
 
   // Check if the user has not already been registered
-  User.findOne({ username: req.body.username }).then((data) => {
+  User.findOne({ email: req.body.email }).then((data) => {
     const hash = bcrypt.hashSync(req.body.password, 10);
     if (data === null) {
       const newUser = new User({
-        firstName: req.body.firstName,
+       firstname: req.body.firstname,
         username: req.body.username,
         password: hash,
         token: uid2(32),
       });
-      if (checkPassword(req.body.password)) {
-        newUser.save().then(() => {
-          res.json({ result: true, token: newUser.token });
-        });
-      }
+      if(checkPassword(req.body.password)) {
+
+      newUser.save().then(() => {
+        res.json({ result: true , token: newUser.token});
+      });}
     } else {
       // User already exists in database
       res.json({ result: false, error: "User already exists" });
     }
   });
 });
+
+
+
+
+
 
 router.post("/signin", (req, res) => {
   if (!checkBody(req.body, ["username", "password"])) {

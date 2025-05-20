@@ -21,10 +21,10 @@ const preferencesSchema = mongoose.Schema({
   remote: String, 
   city : String,
   region :String,
-  createdAt: Date,
-  updatedAt : Date
+//   createdAt: { type: Date, default: Date.now },
+//   updatedAt : Date,
+}, { timestamps: true });
 
-});
 
 
 
@@ -40,10 +40,12 @@ const userSchema = mongoose.Schema({
   alerts: String,
   favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'offers' }], //Tab d'obj ID car possibilité d'avoir plusieurs offres en favori
   applications: [{ type: mongoose.Schema.Types.ObjectId, ref: 'applications' }],
-  createdAt: Date,
-  updatedAt: Date,
+ }, { timestamps: true }); // // Active la création automatique des champs 'createdAt' et 'updatedAt' pour chaque document
 
-});
+  // createdAt: { type: Date, default: Date.now }, //pour générer automatiquement la Date dans la DB en passant par l'automatisation de  la fonctionnalité mongoose 
+ // updatedAt: Date,
+
+
 
 const User = mongoose.model('users', userSchema);
 
