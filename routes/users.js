@@ -121,4 +121,42 @@ router.post("/signin", (req, res) => {
 //   });
 // });
 
+router.put("/", (req, res) => {
+  const token = req.body.token;
+  if (!token) {
+    return res.json({ result: false, message: "Pas find" });
+  }
+  User.updateOne(
+    { token },
+    {
+      name: req.body.name,
+      firstName: req.body.firstName,
+      phoneNumber: req.body.phoneNumber,
+      address: [
+        {
+          streetNumber: req.body.streetNumber,
+          streetName: req.body.streetName,
+          city: req.body.city,
+          zipCode: req.body.zipCode,
+        },
+      ],
+      preferences: [
+        {
+          jobTitle: req.body.jobTitle,
+          sector: req.body.sector,
+          contractType: req.body.contractType,
+          remote: req.body.remote,
+          city: req.body.cityJob,
+          region: req.body.region,
+        },
+      ],
+    }
+  ).then((user) => {
+    if (!user) {
+      return res.json({ result: false, message: "User not found" });
+    }
+    res.json({ result: true, message: user });
+  });
+});
+
 module.exports = router;
