@@ -90,12 +90,12 @@ router.post("/signup", (req, res) => {
 
 
 router.post("/signin", (req, res) => {
-  if (!checkBody(req.body, ["username", "password"])) {
+  if (!checkBody(req.body, ["email", "password"])) {
     res.json({ result: false, error: "Missing or empty fields" });
     return;
   }
 
-  User.findOne({ username: req.body.username }).then((data) => {
+  User.findOne({ email: req.body.email }).then((data) => {
     console.log(req.body.username);
     console.log(req.body.password);
     if (data && bcrypt.compareSync(req.body.password, data.password)) {
