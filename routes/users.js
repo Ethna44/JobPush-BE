@@ -132,6 +132,7 @@ router.put("/", (req, res) => {
   User.updateOne(
     { token },
     {
+      $set: {
       name: req.body.name,
       firstName: req.body.firstName,
       phoneNumber: req.body.phoneNumber,
@@ -154,11 +155,12 @@ router.put("/", (req, res) => {
         },
       ],
     }
+    }
   ).then((user) => {
-    if (!user) {
+    if (!user || user.modifiedCount === 0) {
       return res.json({ result: false, message: "User not found" });
     }
-    res.json({ result: true, message: user });
+    res.json({ result: true, message: "Utilisateur bien modifié" });
   });
 });
 
