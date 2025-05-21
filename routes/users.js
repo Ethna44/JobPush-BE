@@ -9,11 +9,11 @@ require("../models/connection");
 const User = require("../models/users");
 const { checkBody } = require("../modules/checkBody");
 const { checkPassword } = require("../modules/checkPassword");
-const { checkPasswordStandard } = require("../modules/checkPasswordStandard");
-const { checkEmailFormat } = require("../modules/checkEmailFormat");
+const { checkPasswordStandard } = require("../modules/checkPasswordStandard.js");
+const { checkEmailFormat } = require("../modules/checkEmailFormat.js");
 
 router.post("/signup", (req, res) => {
-  if (!checkBody(req.body, ["email", "password"])) {
+  if (!checkBody(req.body, ["email", "password","confirmPassword"])) {
     res.json({ result: false, error: "Missing or empty fields" });
     return;
   }
@@ -35,11 +35,12 @@ router.post("/signup", (req, res) => {
   }
 
   // Check if the user has not already been registered
-  User.findOne({ email: req.body.email }).then((data) => {
+  const email = req.body.email.trim().toLowerCase()
+  User.findOne({ email} ).then((data) => {
     const hash = bcrypt.hashSync(req.body.password, 10);
     if (data === null) {
       const newUser = new User({
-        email: req.body.email,
+        email: email,
         password: hash,
         token: uid2(32),
         name: null,
@@ -90,24 +91,26 @@ router.post("/signup", (req, res) => {
 
 
 router.post("/signin", (req, res) => {
-  if (!checkBody(req.body, ["username", "password"])) {
+  if (!checkBody(req.body, ["email", "password"])) {
     res.json({ result: false, error: "Missing or empty fields" });
     return;
   }
+const email = req.body.email.trim().toLowerCase() //Pour limiter la casse
+console.log(email)
 
-  User.findOne({ username: req.body.username }).then((data) => {
-    console.log(req.body.username);
-    console.log(req.body.password);
+  User.findOne({ email }).then((data) => {
+   console.log(data)
     if (data && bcrypt.compareSync(req.body.password, data.password)) {
-      res.json({
+      console.log(data)
+*      res.json({
         result: true,
         token: data.token,
-        firstname: data.firstname,
+        email: data.email,
         msg: "Access Granted",
       });
     } else {
       res.json({ result: false, msg: "User not found" });
-    }
+    } 
   });
 });
 
