@@ -19,19 +19,18 @@ router.post("/signup", (req, res) => {
   }
   const checkEmailResult = checkEmailFormat(req.body.email);
   if (!checkEmailResult.result) {
-    return res.json({ result: checkEmailResult });
+    return res.json(checkEmailResult);
   }
   const checkPasswordStandardResult = checkPasswordStandard(req.body.password);
   if (!checkPasswordStandardResult.result) {
-    return res.json({ result: checkPasswordStandardResult });
+    return res.json(checkPasswordStandardResult);
   }
-
   const checkPasswordResult = checkPassword(
     req.body.password,
     req.body.confirmPassword
   );
   if (!checkPasswordResult.result) {
-    return res.json({ result: checkPasswordResult });
+    return res.json(checkPasswordResult);
   }
 
   // Check if the user has not already been registered
@@ -92,26 +91,26 @@ router.post("/signup", (req, res) => {
 
 router.post("/signin", (req, res) => {
   if (!checkBody(req.body, ["email", "password"])) {
-    res.json({ result: false, error: "Missing or empty fields" });
-    return;
+    return res.json({ result: false, error: "Missing or empty fields" });
   }
-const email = req.body.email.trim().toLowerCase() //Pour limiter la casse
-console.log(email)
 
-  User.findOne({ email }).then((data) => {
-   console.log(data)
-    if (data && bcrypt.compareSync(req.body.password, data.password)) {
-      console.log(data)
-*      res.json({
-        result: true,
-        token: data.token,
-        email: data.email,
-        msg: "Access Granted",
-      });
-    } else {
-      res.json({ result: false, msg: "User not found" });
-    } 
-  });
+  const email = req.body.email.trim().toLowerCase() //Pour limiter la casse
+  console.log(email)
+
+    User.findOne({ email }).then((data) => {
+    console.log(data)
+      if (data && bcrypt.compareSync(req.body.password, data.password)) {
+        console.log(data)
+  *      res.json({
+          result: true,
+          token: data.token,
+          email: data.email,
+          msg: "Access Granted",
+        });
+      } else {
+        res.json({ result: false, msg: "User not found" });
+      } 
+    });
 });
 
 // router.get("/canBookmark/:token", (req, res) => {
