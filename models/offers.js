@@ -11,7 +11,7 @@ const offersSchema = mongoose.Schema({
   compagny: String,
   logoLink: String,
   grade: String,
- contractType:String , 
+ typeContract :String , 
   publicationDate: Date,
   streetNumber: Number,
   streetName: String,
@@ -23,11 +23,7 @@ const offersSchema = mongoose.Schema({
 
   
     
-  }); // // Active la création automatique des champs 'createdAt' et 'updatedAt' pour chaque document
-
-  // createdAt: { type: Date, default: Date.now }, //pour générer automatiquement la Date dans la DB en passant par l'automatisation de  la fonctionnalité mongoose 
- // updatedAt: Date,
-
+  }); 
 
 
 const Offer = mongoose.model('offers', offersSchema);
