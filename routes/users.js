@@ -123,46 +123,59 @@ router.post("/signin", (req, res) => {
 router.put("/", (req, res) => {
   const token = req.body.token;
   if (!token) {
-    return res.json({ result: false, message: "Pas find" });
+    return res.json({
+      result: false,
+      message: "Veuillez verifier les champs obligatoires",
+    });
   }
+  if (!checkBody(req.body, ["name", "firstName", "phoneNumber"])) {
+    return res.json({
+      result: false,
+      message: "Veuillez verifier les champs obligatoires",
+    });
+  }
+
   User.updateOne(
     { token },
     {
-      name: req.body.name,
-      firstName: req.body.firstName,
-      phoneNumber: req.body.phoneNumber,
-      address: [
-        {
-          streetNumber: req.body.streetNumber,
-          streetName: req.body.streetName,
-          city: req.body.city,
-          zipCode: req.body.zipCode,
-        },
-      ],
-      preferences: [
-        {
-          jobTitle: req.body.jobTitle,
-          sector: req.body.sector,
-          contractType: req.body.contractType,
-          remote: req.body.remote,
-          city: req.body.cityJob,
-          region: req.body.region,
-        },
-      ],
+      $set: {
+        name: req.body.name,
+        firstName: req.body.firstName,
+        phoneNumber: req.body.phoneNumber,
+        address: [
+          {
+            streetNumber: req.body.streetNumber,
+            streetName: req.body.streetName,
+            city: req.body.city,
+            zipCode: req.body.zipCode,
+          },
+        ],
+        preferences: [
+          {
+            jobTitle: req.body.jobTitle,
+            sector: req.body.sector,
+            contractType: req.body.contractType,
+            remote: req.body.remote,
+            city: req.body.cityJob,
+            region: req.body.region,
+          },
+        ],
+      },
     }
   ).then((user) => {
-    if (!user) {
+    if (!user || user.modifiedCount === 0) {
       return res.json({ result: false, message: "User not found" });
     }
-    res.json({ result: true, message: user });
+    res.json({ result: true, message: "Utilisateur bien modifié" });
   });
 });
 
 router.put("/alerts", (req, res) => {
   const token = req.body.token;
   if (!token) {
-    return res.json({ result: false, message: "Pas find" });
+    return res.json({ result: false, message: "Token non trouvé" });
   }
+
   User.updateOne(
     { token },
     {
