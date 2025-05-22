@@ -7,13 +7,16 @@ const bcrypt = require("bcrypt");
 
 require("../models/connection");
 const User = require("../models/users");
+const Offer = require("../models/offers.js");
 const { checkBody } = require("../modules/checkBody");
 const { checkPassword } = require("../modules/checkPassword");
-const { checkPasswordStandard } = require("../modules/checkPasswordStandard.js");
+const {
+  checkPasswordStandard,
+} = require("../modules/checkPasswordStandard.js");
 const { checkEmailFormat } = require("../modules/checkEmailFormat.js");
 
 router.post("/signup", (req, res) => {
-  if (!checkBody(req.body, ["email", "password","confirmPassword"])) {
+  if (!checkBody(req.body, ["email", "password", "confirmPassword"])) {
     res.json({ result: false, error: "Missing or empty fields" });
     return;
   }
@@ -34,8 +37,8 @@ router.post("/signup", (req, res) => {
   }
 
   // Check if the user has not already been registered
-  const email = req.body.email.trim().toLowerCase()
-  User.findOne({ email} ).then((data) => {
+  const email = req.body.email.trim().toLowerCase();
+  User.findOne({ email }).then((data) => {
     const hash = bcrypt.hashSync(req.body.password, 10);
     if (data === null) {
       const newUser = new User({
@@ -67,11 +70,10 @@ router.post("/signup", (req, res) => {
         ],
 
         alerts: null,
-        favorites : [],
-        applications : [],
-     // ou  createdAt : Date.now(), si on avait pas déjà automatisé via le Schema la data ( { type: Date, default: Date.now }  )
+        favorites: [],
+        applications: [],
+        // ou  createdAt : Date.now(), si on avait pas déjà automatisé via le Schema la data ( { type: Date, default: Date.now }  )
         // updatedAt : null,
-        
       });
 
       newUser.save().then(() => {
@@ -84,33 +86,28 @@ router.post("/signup", (req, res) => {
   });
 });
 
-
-
-
-
-
 router.post("/signin", (req, res) => {
   if (!checkBody(req.body, ["email", "password"])) {
     return res.json({ result: false, error: "Missing or empty fields" });
   }
 
-  const email = req.body.email.trim().toLowerCase() //Pour limiter la casse
-  console.log(email)
+  const email = req.body.email.trim().toLowerCase(); //Pour limiter la casse
+  console.log(email);
 
-    User.findOne({ email }).then((data) => {
-    console.log(data)
-      if (data && bcrypt.compareSync(req.body.password, data.password)) {
-        console.log(data)
-  *      res.json({
+  User.findOne({ email }).then((data) => {
+    console.log(data);
+    if (data && bcrypt.compareSync(req.body.password, data.password)) {
+      console.log(data) *
+        res.json({
           result: true,
           token: data.token,
           email: data.email,
           msg: "Access Granted",
         });
-      } else {
-        res.json({ result: false, msg: "User not found" });
-      } 
-    });
+    } else {
+      res.json({ result: false, msg: "User not found" });
+    }
+  });
 });
 
 // router.get("/canBookmark/:token", (req, res) => {
@@ -175,8 +172,48 @@ router.put("/alerts", (req, res) => {
     if (!user) {
       return res.json({ result: false, message: "User not found" });
     }
-    res.json({ result: true,});
+    res.json({ result: true });
   });
 });
+
+router.post("/favorites", async (req, res) => {
+  // const offerId = req.params.offerId;
+  // const token = req.params.token;
+
+  const { offerId, token } = req.body; //Destructuration
+
+  try {
+    const user = await User.findOne({token});
+    if (!user) return res.json({ result: false, error: "User does not exist" });
+
+    const data = await Offer.findById(offerId);
+    if (!data) return res.json({ result: false, error: "Offer already exists" }); //on vérifie que l'user existe d'abord et on recupère son ID, et on vérifie aussi que l'offre existe bie,
+
+    user.favorites.push(offerId); // On sauvegarde  l'offerId  dans le tableau du schema User
+
+    await user.save();
+
+    res.json({ result: true, message: "Offre mit en favoris" });
+  } catch(e) {
+    console.error(e);
+    res.json({ result: false, message: e.message });
+  }
+
+  //On englobe le tout avec un Try catch pour gérer toutes les erreurs et ne pas faire planter le backend
+
+  //Code de bébé ,
+
+  // Offer.findById(offerId).then((data) => {
+  //   if (!data) return res.json({ result: false, error: "User already exists" });
+
+  //   User.favorites.push(offerId);
+
+  //   User.save().then(() => {
+  //     res.json({ result: true, message: "Offre mit en favoris" });
+  //   });
+  // });
+});
+
+//IF findId is valid, then push offerId into array favorites from user  
 
 module.exports = router;
