@@ -17,7 +17,7 @@ const addressSchema = mongoose.Schema({
 const preferencesSchema = mongoose.Schema({
  jobTitle: String,
  sector: String,
- contractType: String,
+  typeContract :String, 
   remote: String, 
   city : String,
   region :String,
