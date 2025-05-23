@@ -66,7 +66,6 @@ router.post("/signup", (req, res) => {
             // updatedAt: null,
           },
         ],
-
         alerts: null,
         favorites: [],
         applications: [],
