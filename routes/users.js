@@ -60,7 +60,7 @@ router.post("/signup", (req, res) => {
           {
             jobTitle: null,
             sector: null,
-            contractType: null,
+            typeContrat: null,
             remote: null,
             city: null,
             region: null,
@@ -125,7 +125,7 @@ router.put("/", (req, res) => {
   if (!token) {
     return res.json({
       result: false,
-      message: "Veuillez verifier les champs obligatoires",
+      message: "Non connecté, veuillez vous connecter",
     });
   }
   if (!checkBody(req.body, ["name", "firstName", "phoneNumber"])) {
@@ -154,7 +154,7 @@ router.put("/", (req, res) => {
           {
             jobTitle: req.body.jobTitle,
             sector: req.body.sector,
-            contractType: req.body.contractType,
+            typeContrat: req.body.contractType,
             remote: req.body.remote,
             city: req.body.cityJob,
             region: req.body.region,

@@ -18,7 +18,7 @@ router.post('/add', (req, res) => {
 	}
 	// Create a new offer
 	const newOffer = new Offer({
-		title: req.body.title,
+		title: req.body.title,  
 		compagny: req.body.compagny,
 		logoLink: req.body.logoLink,
 		grade: req.body.grade,
