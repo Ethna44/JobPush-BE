@@ -10,7 +10,7 @@ const offersSchema = mongoose.Schema({
   title: String,
   compagny: String,
   logoLink: String,
-  grade: String,
+  grade: Number,
  typeContract :String, 
   publicationDate: Date,
   streetNumber: Number,
