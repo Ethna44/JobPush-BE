@@ -34,6 +34,19 @@ router.post("/add", (req, res) => {
     return;
   }
   // Create a new offer
+
+  Offer.findOne({ offerLink: req.body.offerLink })
+    .then((data) => {
+      if (data) {
+        // If the offer already exists, return an error
+        res.json({ result: false, error: "Offer already exists" });
+        return;
+      }
+    })
+    .catch((error) => {
+      res.json({ result: false, error: error.message });
+      return;
+    });
   const newOffer = new Offer({
     title: req.body.title,
     compagny: req.body.compagny,
