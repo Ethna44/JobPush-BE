@@ -62,7 +62,6 @@ router.post("/signup", (req, res) => {
             region: null,
           },
         ],
-
         alerts: null,
         favorites: [],
         applications: [],
