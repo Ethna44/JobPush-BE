@@ -5,8 +5,14 @@ const Offer = require("../models/offers.js");
 const { checkBody } = require("../modules/checkBody");
 
 router.get("/", (req, res) => {
+  const { offset, limit } = req.query;
+  console.log(req.query);
+
+//   Offer.countDocuments();
+
   Offer.find()
-    .limit(10)
+    .skip(offset)
+    .limit(limit)
     .then((data) => {
       res.json({ offers: data });
     });
