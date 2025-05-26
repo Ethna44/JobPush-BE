@@ -5,9 +5,11 @@ const Offer = require("../models/offers.js");
 const { checkBody } = require("../modules/checkBody");
 
 router.get("/", (req, res) => {
-  Offer.find().then((data) => {
-    res.json({ offers: data });
-  });
+  Offer.find()
+    .limit(10)
+    .then((data) => {
+      res.json({ offers: data });
+    });
 });
 
 router.post("/add", (req, res) => {
