@@ -40,36 +40,36 @@ router.post("/add", (req, res) => {
       if (data) {
         // If the offer already exists, return an error
         res.json({ result: false, error: "Offer already exists" });
-        return;
+      } else {
+        const newOffer = new Offer({
+          title: req.body.title,
+          compagny: req.body.compagny,
+          logoLink: req.body.logoLink,
+          grade: req.body.grade,
+          contractType: req.body.contractType,
+          publicationDate: req.body.publicationDate,
+          streetNumber: req.body.streetNumber,
+          streetName: req.body.streetName,
+          city: req.body.city,
+          zipCode: req.body.zipCode,
+          source: req.body.source,
+          offerLink: req.body.offerLink,
+          description: req.body.description,
+        });
+        // Save the offer to the database
+        newOffer
+          .save()
+          .then(() => {
+            res.json({ result: true });
+          })
+          .catch((error) => {
+            res.json({ result: false, error: error.message });
+          });
       }
     })
     .catch((error) => {
       res.json({ result: false, error: error.message });
       return;
-    });
-  const newOffer = new Offer({
-    title: req.body.title,
-    compagny: req.body.compagny,
-    logoLink: req.body.logoLink,
-    grade: req.body.grade,
-    contractType: req.body.contractType,
-    publicationDate: req.body.publicationDate,
-    streetNumber: req.body.streetNumber,
-    streetName: req.body.streetName,
-    city: req.body.city,
-    zipCode: req.body.zipCode,
-    source: req.body.source,
-    offerLink: req.body.offerLink,
-    description: req.body.description,
-  });
-  // Save the offer to the database
-  newOffer
-    .save()
-    .then(() => {
-      res.json({ result: true });
-    })
-    .catch((error) => {
-      res.json({ result: false, error: error.message });
     });
 });
 
