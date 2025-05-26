@@ -1,8 +1,6 @@
 var express = require("express");
 var router = express.Router();
-
 const uid2 = require("uid2");
-
 const bcrypt = require("bcrypt");
 
 require("../models/connection");
@@ -10,9 +8,7 @@ const User = require("../models/users");
 const Offer = require("../models/offers.js");
 const { checkBody } = require("../modules/checkBody");
 const { checkPassword } = require("../modules/checkPassword");
-const {
-  checkPasswordStandard,
-} = require("../modules/checkPasswordStandard.js");
+const { checkPasswordStandard} = require("../modules/checkPasswordStandard.js");
 const { checkEmailFormat } = require("../modules/checkEmailFormat.js");
 
 router.post("/signup", (req, res) => {
@@ -64,16 +60,12 @@ router.post("/signup", (req, res) => {
             remote: null,
             city: null,
             region: null,
-            // createdAt: null, PLUS BESOIN DE CREER CAR GENERER AUTOMATIQUEMENT DANS LE SCHEMA
-            // updatedAt: null,
           },
         ],
 
         alerts: null,
         favorites: [],
         applications: [],
-        // ou  createdAt : Date.now(), si on avait pas déjà automatisé via le Schema la data ( { type: Date, default: Date.now }  )
-        // updatedAt : null,
       });
 
       newUser.save().then(() => {
@@ -97,6 +89,7 @@ router.post("/signin", (req, res) => {
   User.findOne({ email }).then((data) => {
     console.log(data);
     if (data && bcrypt.compareSync(req.body.password, data.password)) {
+<<<<<<< HEAD
       console.log(data);
       res.json({
         result: true,
@@ -104,10 +97,38 @@ router.post("/signin", (req, res) => {
         email: data.email,
         msg: "Access Granted",
       });
+=======
+      console.log(data)
+        res.json({
+          result: true,
+          token: data.token,
+          email: data.email,
+          msg: "Access Granted",
+        });
+>>>>>>> c234e03514e8387f49e73b5f11b79083a49ba517
     } else {
       res.json({ result: false, msg: "User not found" });
     }
   });
+});
+
+router.get("/profile/:token", (req, res) => {
+  const token = req.params.token;
+  if (!token) return res.json({ result: false, message: "Token non trouvé" });
+  User.find({ token })
+    .then((data) => {
+      if (!data) {
+        return res.json({ result: false, message: "User not found" });
+      }
+      res.json({ result: true, preferences: data[0].preferences });
+    })
+    .catch((error) => {
+      console.error(error);
+      res.json({
+        result: false,
+        message: "Erreur lors de la récupération de l'utilisateur",
+      });
+    });
 });
 
 // router.get("/canBookmark/:token", (req, res) => {
@@ -125,7 +146,7 @@ router.put("/", (req, res) => {
   if (!token) {
     return res.json({
       result: false,
-      message: "Veuillez verifier les champs obligatoires",
+      message: "Non connecté, veuillez vous connecter",
     });
   }
   if (!checkBody(req.body, ["name", "firstName", "phoneNumber"])) {
@@ -134,6 +155,7 @@ router.put("/", (req, res) => {
       message: "Veuillez verifier les champs obligatoires",
     });
   }
+  console.log(req.body);
 
   User.updateOne(
     { token },
@@ -207,8 +229,8 @@ router.post("/favorites", async (req, res) => {
 
     await user.save();
 
-    res.json({ result: true, message: "Offre mit en favoris" });
-  } catch (e) {
+    res.json({ result: true, message: "Offre mise en favoris" });
+  } catch(e) {
     console.error(e);
     res.json({ result: false, message: e.message });
   }
@@ -264,5 +286,73 @@ router.put("/favorites/remove", async (req, res) => {
 });
 
 //IF findId is valid, then push offerId into array favorites from user
+//IF findId is valid, then push offerId into array favorites from user
+
+router.post("/google-login", async (req, res) => {
+  const { accessToken } = req.body;
+
+  if (!accessToken) {
+    return res.json({ result: false, error: "Missing Google access token" });
+  }
+
+  try {
+    // Récupération des infos utilisateur depuis Google
+    const googleUserRes = await fetch("https://www.googleapis.com/oauth2/v1/userinfo?alt=json", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    const googleUser = await googleUserRes.json();
+
+    if (!googleUser.email) {
+      return res.json({ result: false, error: "Failed to retrieve Google user info" });
+    }
+
+    const email = googleUser.email.trim().toLowerCase();
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Création d’un nouvel utilisateur Google
+      user = new User({
+        email,
+        password: null, // pas de mot de passe
+        token: uid2(32),
+        name: googleUser.family_name || null,
+        firstName: googleUser.given_name || null,
+        phoneNumber: null,
+        address: [
+          {
+            streetNumber: null,
+            streetName: null,
+            city: null,
+            zipCode: null,
+          },
+        ],
+        preferences: [
+          {
+            jobTitle: null,
+            sector: null,
+            contractType: null,
+            remote: null,
+            city: null,
+            region: null,
+          },
+        ],
+        alerts: null,
+        favorites: [],
+        applications: [],
+      });
+
+      await user.save();
+    }
+
+    res.json({ result: true, token: user.token, email: user.email });
+  } catch (error) {
+    console.error("Google login error:", error);
+    res.json({ result: false, error: "Server error during Google login" });
+  }
+});
 
 module.exports = router;
