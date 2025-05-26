@@ -148,7 +148,7 @@ router.put("/", (req, res) => {
 
   User.updateOne(
     { token },
-    {
+     {
       $set: {
         name: req.body.name,
         firstName: req.body.firstName,
@@ -161,16 +161,16 @@ router.put("/", (req, res) => {
             zipCode: req.body.zipCode,
           },
         ],
-        preferences: [
-          {
-            jobTitle: req.body.jobTitle,
-            sector: req.body.sector,
-            contractType: req.body.contractType,
-            remote: req.body.remote,
-            city: req.body.cityJob,
-            region: req.body.region,
-          },
-        ],
+      },
+      $push: {
+        preferences: {
+          jobTitle: req.body.jobTitle,
+          sector: req.body.sector,
+          contractType: req.body.contractType,
+          remote: req.body.remote,
+          city: req.body.cityJob,
+          region: req.body.region,
+        },
       },
     }
   ).then((user) => {
