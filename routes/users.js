@@ -88,15 +88,6 @@ router.post("/signin", (req, res) => {
   User.findOne({ email }).then((data) => {
     console.log(data);
     if (data && bcrypt.compareSync(req.body.password, data.password)) {
-<<<<<<< HEAD
-      console.log(data);
-      res.json({
-        result: true,
-        token: data.token,
-        email: data.email,
-        msg: "Access Granted",
-      });
-=======
       console.log(data)
         res.json({
           result: true,
@@ -104,7 +95,6 @@ router.post("/signin", (req, res) => {
           email: data.email,
           msg: "Access Granted",
         });
->>>>>>> c234e03514e8387f49e73b5f11b79083a49ba517
     } else {
       res.json({ result: false, msg: "User not found" });
     }
