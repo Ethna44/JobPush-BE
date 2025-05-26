@@ -288,7 +288,7 @@ router.post("/google-login", async (req, res) => {
           {
             jobTitle: null,
             sector: null,
-            typeContrat: null,
+            contractType: null,
             remote: null,
             city: null,
             region: null,
