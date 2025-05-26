@@ -6,7 +6,7 @@ const { checkBody } = require("../modules/checkBody");
 
 router.get("/", (req, res) => {
   Offer.find()
-    .limit(10)
+    .limit(20)
     .then((data) => {
       res.json({ offers: data });
     });
