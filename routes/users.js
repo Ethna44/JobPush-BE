@@ -190,23 +190,24 @@ router.put("/", (req, res) => {
 
 
 
-router.put("/alerts", (req, res) => {
+router.put("/alerts", async (req, res) => {
   const token = req.body.token;
   if (!token) {
     return res.json({ result: false, message: "Token non trouvé" });
   }
 
-  User.updateOne(
-    { token },
-    {
-      alerts: req.body.alerts,
+  try {
+    const result = await User.updateOne(
+      { token },
+      { $set: { alerts: req.body.alerts } }
+    );
+    if (!result || result.modifiedCount === 0) {
+      return res.json({ result: false, message: "User not found or not updated" });
     }
-  ).then((user) => {
-    if (!user) {
-      return res.json({ result: false, message: "User not found" });
-    }
-    res.json({ result: true });
-  });
+    res.json({ result: true, alerts: req.body.alerts });
+  } catch (e) {
+    res.json({ result: false, message: "Erreur serveur" });
+  }
 });
 
 router.post("/favorites", async (req, res) => {
@@ -366,13 +367,6 @@ router.delete("/:token", async (req, res) => {
 
 
 
-
-
-
-
-
-
-
 router.post("/addPreferences", (req, res) => {
   const token = req.body.token;
   if (!token) {
@@ -403,5 +397,11 @@ router.post("/addPreferences", (req, res) => {
     res.json({ result: true, message: "Utilisateur bien modifié" });
   });
 });
+
+
+
+
+
+
 
 module.exports = router;
