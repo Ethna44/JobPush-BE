@@ -8,11 +8,12 @@ const User = require("../models/users");
 const Offer = require("../models/offers.js");
 const { checkBody } = require("../modules/checkBody");
 const { checkPassword } = require("../modules/checkPassword");
-const { checkPasswordStandard} = require("../modules/checkPasswordStandard.js");
+const {
+  checkPasswordStandard,
+} = require("../modules/checkPasswordStandard.js");
 const { checkEmailFormat } = require("../modules/checkEmailFormat.js");
 
 router.post("/signup", (req, res) => {
- 
   if (!checkBody(req.body, ["email", "password", "confirmPassword"])) {
     res.json({ result: false, error: "Missing or empty fields" });
     return;
@@ -45,24 +46,8 @@ router.post("/signup", (req, res) => {
         name: null,
         firstName: null,
         phoneNumber: null,
-        address: [
-          {
-            streetNumber: null,
-            streetName: null,
-            city: null,
-            zipCode: null,
-          },
-        ],
-        preferences: [
-          {
-            jobTitle: null,
-            sector: null,
-            contractType: null,
-            remote: null,
-            city: null,
-            region: null,
-          },
-        ],
+        address: [],
+        preferences: [],
         alerts: null,
         favorites: [],
         applications: [],
@@ -82,13 +67,10 @@ router.post("/signin", (req, res) => {
   if (!checkBody(req.body, ["email", "password"])) {
     return res.json({ result: false, error: "Missing or empty fields" });
   }
-   const checkEmailResult = checkEmailFormat(req.body.email);
+  const checkEmailResult = checkEmailFormat(req.body.email);
   if (!checkEmailResult.result) {
     return res.json(checkEmailResult);
   }
-
-
-    
 
   const email = req.body.email.trim().toLowerCase(); //Pour limiter la casse
   console.log(email);
@@ -96,13 +78,13 @@ router.post("/signin", (req, res) => {
   User.findOne({ email }).then((data) => {
     console.log(data);
     if (data && bcrypt.compareSync(req.body.password, data.password)) {
-      console.log(data)
-        res.json({
-          result: true,
-          token: data.token,
-          email: data.email,
-          msg: "Access Granted",
-        });
+      console.log(data);
+      res.json({
+        result: true,
+        token: data.token,
+        email: data.email,
+        msg: "Access Granted",
+      });
     } else {
       res.json({ result: false, error: "User not found, or Invalid password" });
     }
@@ -156,7 +138,7 @@ router.put("/", (req, res) => {
 
   User.updateOne(
     { token },
-     {
+    {
       $set: {
         name: req.body.name,
         firstName: req.body.firstName,
@@ -227,7 +209,7 @@ router.post("/favorites", async (req, res) => {
     await user.save();
 
     res.json({ result: true, message: "Offre mise en favoris" });
-  } catch(e) {
+  } catch (e) {
     console.error(e);
     res.json({ result: false, message: e.message });
   }
@@ -248,7 +230,7 @@ router.post("/favorites", async (req, res) => {
 });
 
 router.put("/favorites/remove", async (req, res) => {
-   const { offerId, token } = req.body;
+  const { offerId, token } = req.body;
 
   if (!token) {
     return res.json({ result: false, message: "Token non trouvé" });
@@ -294,16 +276,22 @@ router.post("/google-login", async (req, res) => {
 
   try {
     // Récupération des infos utilisateur depuis Google
-    const googleUserRes = await fetch("https://www.googleapis.com/oauth2/v1/userinfo?alt=json", {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const googleUserRes = await fetch(
+      "https://www.googleapis.com/oauth2/v1/userinfo?alt=json",
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
 
     const googleUser = await googleUserRes.json();
 
     if (!googleUser.email) {
-      return res.json({ result: false, error: "Failed to retrieve Google user info" });
+      return res.json({
+        result: false,
+        error: "Failed to retrieve Google user info",
+      });
     }
 
     const email = googleUser.email.trim().toLowerCase();
@@ -350,6 +338,37 @@ router.post("/google-login", async (req, res) => {
     console.error("Google login error:", error);
     res.json({ result: false, error: "Server error during Google login" });
   }
+});
+
+router.post("/addPreferences", (req, res) => {
+  const token = req.body.token;
+  if (!token) {
+    return res.json({
+      result: false,
+      message: "Non connecté, veuillez vous connecter",
+    });
+  }
+
+  User.updateOne(
+    { token },
+    {
+      $push: {
+        preferences: {
+          jobTitle: req.body.jobTitle,
+          sector: req.body.sector,
+          contractType: req.body.contractType,
+          remote: req.body.remote,
+          city: req.body.cityJob,
+          region: req.body.region,
+        },
+      },
+    }
+  ).then((user) => {
+    if (!user || user.modifiedCount === 0) {
+      return res.json({ result: false, message: "User not found" });
+    }
+    res.json({ result: true, message: "Utilisateur bien modifié" });
+  });
 });
 
 module.exports = router;
