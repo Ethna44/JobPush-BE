@@ -13,6 +13,7 @@ const { checkEmailFormat } = require("../modules/checkEmailFormat.js");
 
 //route d'inscription
 router.post("/signup", (req, res) => {
+ 
   if (!checkBody(req.body, ["email", "password", "confirmPassword"])) {
     res.json({ result: false, error: "Missing or empty fields" });
     return;
@@ -83,6 +84,13 @@ router.post("/signin", (req, res) => {
   if (!checkBody(req.body, ["email", "password"])) {
     return res.json({ result: false, error: "Missing or empty fields" });
   }
+   const checkEmailResult = checkEmailFormat(req.body.email);
+  if (!checkEmailResult.result) {
+    return res.json(checkEmailResult);
+  }
+
+
+    
 
   const email = req.body.email.trim().toLowerCase(); //Pour limiter la casse
   console.log(email);
@@ -98,7 +106,7 @@ router.post("/signin", (req, res) => {
           msg: "Access Granted",
         });
     } else {
-      res.json({ result: false, msg: "User not found" });
+      res.json({ result: false, error: "User not found, or Invalid password" });
     }
   });
 });

@@ -2,16 +2,29 @@ var express = require("express");
 var router = express.Router();
 require("../models/connection");
 const Offer = require("../models/offers.js");
+const User = require("../models/users.js");
 const { checkBody } = require("../modules/checkBody");
+const city = require("../modules/citie.json"); ;
 
-//récupérer les offres
-router.get("/", (req, res) => {
-  const { offset, limit } = req.query;
-  console.log(req.query);
+router.get("/", async (req, res) => {
+  const { offset, limit, userToken } = req.query;
+  const user = await User.findOne({ token: userToken });
+  const pref = user.preferences[user.preferences.length - 1];
+  const filter = {};
+  if (pref.contractType) filter.contractType = pref.contractType;
+  if (pref.jobTitle) {
+    const words = pref.jobTitle.split(/\s+/).filter(Boolean);
+    filter.$or = words.flatMap(word => [
+      { title: { $regex: word, $options: "i" } },
+      { description: { $regex: word, $options: "i" } }
+    ]);
+  }
 
-//   Offer.countDocuments();
 
-  Offer.find()
+
+
+  Offer.find(filter)
+    .sort({ publicationDate: -1 }) // Sort by publication date, most recent first
     .skip(offset)
     .limit(limit)
     .then((data) => {
