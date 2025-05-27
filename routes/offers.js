@@ -35,7 +35,7 @@ router.get("/", async (req, res) => {
 
 
   Offer.find({ $or: filters })
-    .sort({ publicationDate: -1 }) // Sort by publication date, most recent first
+    .sort({ _id: -1 }) // Sort by publication date, most recent first
     .skip(offset)
     .limit(limit)
     .then((data) => {
