@@ -8,11 +8,13 @@ const User = require("../models/users");
 const Offer = require("../models/offers.js");
 const { checkBody } = require("../modules/checkBody");
 const { checkPassword } = require("../modules/checkPassword");
-const { checkPasswordStandard} = require("../modules/checkPasswordStandard.js");
+const {
+  checkPasswordStandard,
+} = require("../modules/checkPasswordStandard.js");
 const { checkEmailFormat } = require("../modules/checkEmailFormat.js");
 
+//route d'inscription
 router.post("/signup", (req, res) => {
- 
   if (!checkBody(req.body, ["email", "password", "confirmPassword"])) {
     res.json({ result: false, error: "Missing or empty fields" });
     return;
@@ -45,24 +47,8 @@ router.post("/signup", (req, res) => {
         name: null,
         firstName: null,
         phoneNumber: null,
-        address: [
-          {
-            streetNumber: null,
-            streetName: null,
-            city: null,
-            zipCode: null,
-          },
-        ],
-        preferences: [
-          {
-            jobTitle: null,
-            sector: null,
-            contractType: null,
-            remote: null,
-            city: null,
-            region: null,
-          },
-        ],
+        address: [],
+        preferences: [],
         alerts: null,
         favorites: [],
         applications: [],
@@ -78,17 +64,15 @@ router.post("/signup", (req, res) => {
   });
 });
 
+//route de connexion
 router.post("/signin", (req, res) => {
   if (!checkBody(req.body, ["email", "password"])) {
     return res.json({ result: false, error: "Missing or empty fields" });
   }
-   const checkEmailResult = checkEmailFormat(req.body.email);
+  const checkEmailResult = checkEmailFormat(req.body.email);
   if (!checkEmailResult.result) {
     return res.json(checkEmailResult);
   }
-
-
-    
 
   const email = req.body.email.trim().toLowerCase(); //Pour limiter la casse
   console.log(email);
@@ -117,23 +101,28 @@ router.post("/signin", (req, res) => {
   });
 });
 
-router.get("/profile/:token", (req, res) => {
+//récupérer les infos d'un utilisateur via son token
+router.get("/profile/:token", async (req, res) => {
   const token = req.params.token;
   if (!token) return res.json({ result: false, message: "Token non trouvé" });
-  User.find({ token })
-    .then((data) => {
-      if (!data) {
-        return res.json({ result: false, message: "User not found" });
-      }
-      res.json({ result: true, preferences: data[0].preferences });
-    })
-    .catch((error) => {
-      console.error(error);
-      res.json({
-        result: false,
-        message: "Erreur lors de la récupération de l'utilisateur",
-      });
+  try {
+    const user = await User.findOne({ token });
+    if (!user) return res.json({ result: false, error: "User not found" });
+
+    res.json({
+      result: true,
+      name: user.name,
+      firstName: user.firstName,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      address: user.address,
+      preferences: user.preferences,
+      alerts: user.alerts,
+      favorites: user.favorites, // pour récupérer le tableau de favoris
     });
+  } catch (error) {
+    res.json({ result: false, error: error.message });
+  }
 });
 
 // router.get("/canBookmark/:token", (req, res) => {
@@ -146,6 +135,7 @@ router.get("/profile/:token", (req, res) => {
 //   });
 // });
 
+//
 router.put("/", (req, res) => {
   const token = req.body.token;
   if (!token) {
@@ -164,7 +154,7 @@ router.put("/", (req, res) => {
 
   User.updateOne(
     { token },
-     {
+    {
       $set: {
         name: req.body.name,
         firstName: req.body.firstName,
@@ -226,44 +216,42 @@ router.post("/favorites", async (req, res) => {
   const { offerId, token } = req.body; //Destructuration
 
   try {
+    //optionnel : vérifie que l'utilisateur est bien connecté 
     const user = await User.findOne({ token });
     if (!user) return res.json({ result: false, error: "User does not exist" });
-
+    
+    //optionel : vérifie que l'offre existe toujours
     const data = await Offer.findById(offerId);
     if (!data)
       return res.json({ result: false, error: "Offer does not exists" }); //on vérifie que l'user existe d'abord et on recupère son ID, et on vérifie aussi que l'offre existe bie,
 
-    user.favorites.push(offerId); // On sauvegarde  l'offerId  dans le tableau du schema User
+    //vérifie si l'offre est déjà dans les favoris avant de pousser son objectId dans le tableau des favoris du user
+    if (user.favorites.includes(offerId)) {
+      return res.json({ result: false, error: "Offre déjà dans les favoris" });
+    }
+
+    user.favorites.push(offerId); // On sauvegarde  l'offerId  dans le tableau favorites du user
 
     await user.save();
 
     res.json({ result: true, message: "Offre mise en favoris" });
-  } catch(e) {
+  } catch (e) {
     console.error(e);
     res.json({ result: false, message: e.message });
   }
-
-  //Code de bébé ,
-
-  // Offer.findById(offerId).then((data) => {
-  //   if (!data) return res.json({ result: false, error: "User already exists" });
-
-  //   User.favorites.push(offerId);
-
-  //   User.save().then(() => {
-  //     res.json({ result: true, message: "Offre mit en favoris" });
-  //   });
-  // });
-
-  //On englobe le tout avec un Try catch pour gérer toutes les erreurs et ne pas faire planter le backend
 });
 
 router.put("/favorites/remove", async (req, res) => {
    const { offerId, token } = req.body;
+   const user = await User.findOne({ token });
 
   if (!token) {
     return res.json({ result: false, message: "Token non trouvé" });
   }
+  //vérifie si l'offre est déjà dans les favoris avant de pousser son objectId dans le tableau des favoris du user
+    if (!user.favorites.includes(offerId)) {
+      return res.json({ result: false, error: "L'offre n'est pas dans les favoris" });
+    }
   try {
     const result = await User.updateOne(
       { token: token },
@@ -275,15 +263,6 @@ router.put("/favorites/remove", async (req, res) => {
         result: false,
         message: "Offre non trouvée dans les favoris.",
       });
-
-      // ^^^^^^^^^^
-      // Vérifie si une offre a bien été retirée des favoris.
-      // Si modifiedCount === 0, cela signifie que l'offre n'était pas présente dans la liste.
-      // //{
-      //   acknowledged: true,
-      //   matchedCount: 1,
-      //   modifiedCount: 1
-      // }
     }
 
     res.json({ result: true, message: "Offre supprimée des favoris" });
@@ -305,16 +284,22 @@ router.post("/google-login", async (req, res) => {
 
   try {
     // Récupération des infos utilisateur depuis Google
-    const googleUserRes = await fetch("https://www.googleapis.com/oauth2/v1/userinfo?alt=json", {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const googleUserRes = await fetch(
+      "https://www.googleapis.com/oauth2/v1/userinfo?alt=json",
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
 
     const googleUser = await googleUserRes.json();
 
     if (!googleUser.email) {
-      return res.json({ result: false, error: "Failed to retrieve Google user info" });
+      return res.json({
+        result: false,
+        error: "Failed to retrieve Google user info",
+      });
     }
 
     const email = googleUser.email.trim().toLowerCase();
@@ -387,5 +372,36 @@ router.delete("/:token", async (req, res) => {
 
 
 
+
+router.post("/addPreferences", (req, res) => {
+  const token = req.body.token;
+  if (!token) {
+    return res.json({
+      result: false,
+      message: "Non connecté, veuillez vous connecter",
+    });
+  }
+
+  User.updateOne(
+    { token },
+    {
+      $push: {
+        preferences: {
+          jobTitle: req.body.jobTitle,
+          sector: req.body.sector,
+          contractType: req.body.contractType,
+          remote: req.body.remote,
+          city: req.body.cityJob,
+          region: req.body.region,
+        },
+      },
+    }
+  ).then((user) => {
+    if (!user || user.modifiedCount === 0) {
+      return res.json({ result: false, message: "User not found" });
+    }
+    res.json({ result: true, message: "Utilisateur bien modifié" });
+  });
+});
 
 module.exports = router;
