@@ -43,6 +43,15 @@ router.get("/", async (req, res) => {
     });
 });
 
+//prends un tableau d'Ids et retourne les offres correspondantes
+router.post("/byIds", async (req, res) => {
+  const { ids } = req.body;
+  if (!ids || !Array.isArray(ids)) return res.json({ offers: [] });
+  const offers = await Offer.find({ _id: { $in: ids } });
+  res.json({ offers });
+});
+ 
+//ajouter une nouvelle offre dans la base de données
 router.post("/add", (req, res) => {
   // Check if the required fields are present
   if (
