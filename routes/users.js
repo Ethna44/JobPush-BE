@@ -100,7 +100,15 @@ router.post("/signin", (req, res) => {
         res.json({
           result: true,
           token: data.token,
-          email: data.email,
+           email: data.email,
+           firstName: data.firstName,
+           name: data.name,
+           phoneNumber:data.phoneNumber,
+           address: data.address,
+           preferences: data.preferences,
+           alerts : data.alerts,
+           favorites: data.favorites,
+           applications: data.applications,
           msg: "Access Granted",
         });
     } else {
@@ -188,6 +196,9 @@ router.put("/", (req, res) => {
     res.json({ result: true, message: "Utilisateur bien modifié" });
   });
 });
+
+
+
 
 router.put("/alerts", (req, res) => {
   const token = req.body.token;
@@ -283,7 +294,7 @@ router.put("/favorites/remove", async (req, res) => {
 });
 
 //IF findId is valid, then push offerId into array favorites from user
-//IF findId is valid, then push offerId into array favorites from user
+
 
 router.post("/google-login", async (req, res) => {
   const { accessToken } = req.body;
@@ -350,6 +361,31 @@ router.post("/google-login", async (req, res) => {
     console.error("Google login error:", error);
     res.json({ result: false, error: "Server error during Google login" });
   }
+
+
 });
+
+
+router.delete("/:token", async (req, res) => {
+  try {
+    const deletedUser = await User.findOneAndDelete({token: req.params.token});
+    if (!deletedUser) {
+      return res.status(404).json({ result: false, error: "Utilisateur non trouvé" });
+    }
+    res.json({ result: true, message: "Utilisateur supprimé" });
+  } catch (error) {
+    res.status(500).json({ result: false, error: "Erreur serveur" });
+  }
+});
+
+
+
+
+
+
+
+
+
+
 
 module.exports = router;
