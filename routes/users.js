@@ -125,17 +125,6 @@ router.get("/profile/:token", async (req, res) => {
   }
 });
 
-// router.get("/canBookmark/:token", (req, res) => {
-//   User.findOne({ token: req.params.token }).then((data) => {
-//     if (!data) {
-//       return res.json({ result: false });
-//     }
-
-//     res.json({ result: true, canBookmark: data.canBookmark });
-//   });
-// });
-
-//
 router.put("/", (req, res) => {
   const token = req.body.token;
   if (!token) {
@@ -397,6 +386,27 @@ router.post("/addPreferences", (req, res) => {
     res.json({ result: true, message: "Utilisateur bien modifié" });
   });
 });
+
+
+router.get("/preferences/:token", async (req, res) => {
+  const token = req.params.token;
+  if (!token) {
+    return res.json({ result: false, message: "Token non trouvé" });
+  }
+
+  try {
+    const user = await User.find()
+      .findOne({ token })
+    res.json({
+      result: true,
+      preferences: user.preferences,
+    });
+  } catch (error) {
+    console.error("Error fetching user preferences:", error);
+    res.json({ result: false, error: "Erreur lors de la récupération des préférences" });
+  }
+}
+);
 
 
 
