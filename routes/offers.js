@@ -34,9 +34,9 @@ router.get("/", async (req, res) => {
   }
 
   Offer.find({ $or: filters }) // Utilise les filtres construits
+    .sort({ publicationDate: -1 })
     .skip(offset)
     .limit(limit)
-    .sort({ publicationDate: -1 }) // Tri par date de publication décroissante
     .then((data) => {
       res.json({ offers: data });
     });
