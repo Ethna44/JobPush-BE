@@ -7,14 +7,14 @@ const { checkBody } = require("../modules/checkBody");
 
 router.get("/", async (req, res) => {
   const { offset, limit, userToken } = req.query;
-  const user = await User.findOne({ token: userToken });
-  const pref = user.preferences[user.preferences.length - 1];
-const filter = {};
-if (pref.contractType) filter.contractType = pref.contractType;
+//   const user = await User.findOne({ token: userToken });
+//   const pref = user.preferences[user.preferences.length - 1];
+// const filter = {};
+// if (pref.contractType) filter.contractType = pref.contractType;
 
 
 
-  Offer.find(filter)
+  Offer.find()
     .sort({ publicationDate: -1 }) // Sort by publication date, most recent first
     .skip(offset)
     .limit(limit)
