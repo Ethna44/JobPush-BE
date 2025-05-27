@@ -11,6 +11,7 @@ const { checkPassword } = require("../modules/checkPassword");
 const { checkPasswordStandard} = require("../modules/checkPasswordStandard.js");
 const { checkEmailFormat } = require("../modules/checkEmailFormat.js");
 
+//route d'inscription
 router.post("/signup", (req, res) => {
   if (!checkBody(req.body, ["email", "password", "confirmPassword"])) {
     res.json({ result: false, error: "Missing or empty fields" });
@@ -77,6 +78,7 @@ router.post("/signup", (req, res) => {
   });
 });
 
+//route de connexion
 router.post("/signin", (req, res) => {
   if (!checkBody(req.body, ["email", "password"])) {
     return res.json({ result: false, error: "Missing or empty fields" });
@@ -101,23 +103,28 @@ router.post("/signin", (req, res) => {
   });
 });
 
-router.get("/profile/:token", (req, res) => {
+//récupérer les infos d'un utilisateur via son token
+router.get("/profile/:token", async (req, res) => {
   const token = req.params.token;
   if (!token) return res.json({ result: false, message: "Token non trouvé" });
-  User.find({ token })
-    .then((data) => {
-      if (!data) {
-        return res.json({ result: false, message: "User not found" });
-      }
-      res.json({ result: true, preferences: data[0].preferences });
-    })
-    .catch((error) => {
-      console.error(error);
-      res.json({
-        result: false,
-        message: "Erreur lors de la récupération de l'utilisateur",
-      });
+  try {
+    const user = await User.findOne({ token });
+    if (!user) return res.json({ result: false, error: "User not found" });
+
+    res.json({
+      result: true,
+      name: user.name,
+      firstName: user.firstName,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      address: user.address,
+      preferences: user.preferences,
+      alerts: user.alerts,
+      favorites: user.favorites, // pour récupérer le tableau de favoris
     });
+  } catch (error) {
+    res.json({ result: false, error: error.message });
+  }
 });
 
 // router.get("/canBookmark/:token", (req, res) => {
@@ -130,6 +137,7 @@ router.get("/profile/:token", (req, res) => {
 //   });
 // });
 
+//
 router.put("/", (req, res) => {
   const token = req.body.token;
   if (!token) {
@@ -207,14 +215,21 @@ router.post("/favorites", async (req, res) => {
   const { offerId, token } = req.body; //Destructuration
 
   try {
+    //optionnel : vérifie que l'utilisateur est bien connecté 
     const user = await User.findOne({ token });
     if (!user) return res.json({ result: false, error: "User does not exist" });
-
+    
+    //optionel : vérifie que l'offre existe toujours
     const data = await Offer.findById(offerId);
     if (!data)
       return res.json({ result: false, error: "Offer does not exists" }); //on vérifie que l'user existe d'abord et on recupère son ID, et on vérifie aussi que l'offre existe bie,
 
-    user.favorites.push(offerId); // On sauvegarde  l'offerId  dans le tableau du schema User
+    //vérifie si l'offre est déjà dans les favoris avant de pousser son objectId dans le tableau des favoris du user
+    if (user.favorites.includes(offerId)) {
+      return res.json({ result: false, error: "Offre déjà dans les favoris" });
+    }
+
+    user.favorites.push(offerId); // On sauvegarde  l'offerId  dans le tableau favorites du user
 
     await user.save();
 
@@ -223,28 +238,19 @@ router.post("/favorites", async (req, res) => {
     console.error(e);
     res.json({ result: false, message: e.message });
   }
-
-  //Code de bébé ,
-
-  // Offer.findById(offerId).then((data) => {
-  //   if (!data) return res.json({ result: false, error: "User already exists" });
-
-  //   User.favorites.push(offerId);
-
-  //   User.save().then(() => {
-  //     res.json({ result: true, message: "Offre mit en favoris" });
-  //   });
-  // });
-
-  //On englobe le tout avec un Try catch pour gérer toutes les erreurs et ne pas faire planter le backend
 });
 
 router.put("/favorites/remove", async (req, res) => {
    const { offerId, token } = req.body;
+   const user = await User.findOne({ token });
 
   if (!token) {
     return res.json({ result: false, message: "Token non trouvé" });
   }
+  //vérifie si l'offre est déjà dans les favoris avant de pousser son objectId dans le tableau des favoris du user
+    if (!user.favorites.includes(offerId)) {
+      return res.json({ result: false, error: "L'offre n'est pas dans les favoris" });
+    }
   try {
     const result = await User.updateOne(
       { token: token },
@@ -256,15 +262,6 @@ router.put("/favorites/remove", async (req, res) => {
         result: false,
         message: "Offre non trouvée dans les favoris.",
       });
-
-      // ^^^^^^^^^^
-      // Vérifie si une offre a bien été retirée des favoris.
-      // Si modifiedCount === 0, cela signifie que l'offre n'était pas présente dans la liste.
-      // //{
-      //   acknowledged: true,
-      //   matchedCount: 1,
-      //   modifiedCount: 1
-      // }
     }
 
     res.json({ result: true, message: "Offre supprimée des favoris" });

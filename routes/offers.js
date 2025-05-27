@@ -4,6 +4,7 @@ require("../models/connection");
 const Offer = require("../models/offers.js");
 const { checkBody } = require("../modules/checkBody");
 
+//récupérer les offres
 router.get("/", (req, res) => {
   const { offset, limit } = req.query;
   console.log(req.query);
@@ -18,6 +19,15 @@ router.get("/", (req, res) => {
     });
 });
 
+//prends un tableau d'Ids et retourne les offres correspondantes
+router.post("/byIds", async (req, res) => {
+  const { ids } = req.body;
+  if (!ids || !Array.isArray(ids)) return res.json({ offers: [] });
+  const offers = await Offer.find({ _id: { $in: ids } });
+  res.json({ offers });
+});
+ 
+//ajouter une nouvelle offre dans la base de données
 router.post("/add", (req, res) => {
   // Check if the required fields are present
   if (
