@@ -337,7 +337,6 @@ router.post("/google-login", async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
 router.post("/addPreferences", (req, res) => {
   const token = req.body.token;
   if (!token) {
@@ -370,6 +369,3 @@ router.post("/addPreferences", (req, res) => {
 });
 
 module.exports = router;
-=======
-module.exports = router;
->>>>>>> 0449e052dfcbacc5a20333dbfcd12fe2f2575cd1
