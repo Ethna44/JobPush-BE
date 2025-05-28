@@ -177,7 +177,6 @@ router.put("/", (req, res) => {
     res.json({ result: true, message: "Utilisateur bien modifié" });
   });
 });
-
 router.put("/alerts", async (req, res) => {
   const token = req.body.token;
   if (!token) {
