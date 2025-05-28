@@ -3,6 +3,8 @@ var router = express.Router();
 const uid2 = require("uid2");
 const bcrypt = require("bcrypt");
 
+const mongoose = require("mongoose");
+
 require("../models/connection");
 const User = require("../models/users");
 const Offer = require("../models/offers.js");
@@ -175,7 +177,6 @@ router.put("/", (req, res) => {
     res.json({ result: true, message: "Utilisateur bien modifié" });
   });
 });
-
 router.put("/alerts", async (req, res) => {
   const token = req.body.token;
   if (!token) {
@@ -365,11 +366,14 @@ router.post("/addPreferences", (req, res) => {
     });
   }
 
+  const idPreference = new mongoose.Types.ObjectId();
+
   User.updateOne(
     { token },
     {
       $push: {
         preferences: {
+           _id: idPreference,
           jobTitle: req.body.jobTitle,
           sector: req.body.sector,
           contractType: req.body.contractType,
@@ -383,7 +387,7 @@ router.post("/addPreferences", (req, res) => {
     if (!user || user.modifiedCount === 0) {
       return res.json({ result: false, message: "User not found" });
     }
-    res.json({ result: true, message: "Utilisateur bien modifié" });
+    res.json({ result: true, message: "Utilisateur bien modifié", _id : idPreference  });
   });
 });
 
@@ -398,13 +402,48 @@ router.get("/preferences/:token", async (req, res) => {
     res.json({
       result: true,
       preferences: user.preferences,
-    });
+    });m
   } catch (error) {
     console.error("Error fetching user preferences:", error);
     res.json({
       result: false,
       error: "Erreur lors de la récupération des préférences",
     });
+  }
+});
+
+router.put("/preference/remove", async (req, res) => {
+  const token = req.body.token;
+  if (!token) {
+    return res.json({
+      result: false,
+      message: "Non connecté, veuillez vous connecter",
+    });
+  }
+
+  try {
+    const result = await User.updateOne(
+      { token: token },
+      {
+        $pull: {
+          preferences: {
+            _id: req.body._id
+          },
+        },
+      }
+    ); //Permet d'update un element du tableau sans avoir à sauvegarder en recréeant un nouveau tableau.
+
+    if (result.modifiedCount === 0) {
+      return res.json({
+        result: false,
+        message: "Offre non trouvée dans les favoris.",
+      });
+    }
+
+    res.json({ result: true, message: "Recherche supprimée des préférences" });
+  } catch (e) {
+    console.error(e);
+    res.json({ result: false, message: e.message });
   }
 });
 
