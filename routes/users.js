@@ -75,26 +75,26 @@ router.post("/signin", (req, res) => {
   }
 
   const email = req.body.email.trim().toLowerCase(); //Pour limiter la casse
-  console.log(email);
+  //console.log(email);
 
   User.findOne({ email }).then((data) => {
-    console.log(data);
+    //console.log(data);
     if (data && bcrypt.compareSync(req.body.password, data.password)) {
-      console.log(data)
-        res.json({
-          result: true,
-          token: data.token,
-           email: data.email,
-           firstName: data.firstName,
-           name: data.name,
-           phoneNumber:data.phoneNumber,
-           address: data.address,
-           preferences: data.preferences,
-           alerts : data.alerts,
-           favorites: data.favorites,
-           applications: data.applications,
-          msg: "Access Granted",
-        });
+      //console.log(data)
+      res.json({
+        result: true,
+        token: data.token,
+        email: data.email,
+        firstName: data.firstName,
+        name: data.name,
+        phoneNumber: data.phoneNumber,
+        address: data.address,
+        preferences: data.preferences,
+        alerts: data.alerts,
+        favorites: data.favorites,
+        applications: data.applications,
+        msg: "Access Granted",
+      });
     } else {
       res.json({ result: false, error: "User not found, or Invalid password" });
     }
@@ -139,7 +139,7 @@ router.put("/", (req, res) => {
       message: "Veuillez verifier les champs obligatoires",
     });
   }
-  console.log(req.body);
+  //console.log(req.body);
 
   User.updateOne(
     { token },
@@ -176,9 +176,6 @@ router.put("/", (req, res) => {
   });
 });
 
-
-
-
 router.put("/alerts", async (req, res) => {
   const token = req.body.token;
   if (!token) {
@@ -191,7 +188,10 @@ router.put("/alerts", async (req, res) => {
       { $set: { alerts: req.body.alerts } }
     );
     if (!result || result.modifiedCount === 0) {
-      return res.json({ result: false, message: "User not found or not updated" });
+      return res.json({
+        result: false,
+        message: "User not found or not updated",
+      });
     }
     res.json({ result: true, alerts: req.body.alerts });
   } catch (e) {
@@ -206,10 +206,10 @@ router.post("/favorites", async (req, res) => {
   const { offerId, token } = req.body; //Destructuration
 
   try {
-    //optionnel : vérifie que l'utilisateur est bien connecté 
+    //optionnel : vérifie que l'utilisateur est bien connecté
     const user = await User.findOne({ token });
     if (!user) return res.json({ result: false, error: "User does not exist" });
-    
+
     //optionel : vérifie que l'offre existe toujours
     const data = await Offer.findById(offerId);
     if (!data)
@@ -232,16 +232,19 @@ router.post("/favorites", async (req, res) => {
 });
 
 router.put("/favorites/remove", async (req, res) => {
-   const { offerId, token } = req.body;
-   const user = await User.findOne({ token });
+  const { offerId, token } = req.body;
+  const user = await User.findOne({ token });
 
   if (!token) {
     return res.json({ result: false, message: "Token non trouvé" });
   }
   //vérifie si l'offre est déjà dans les favoris avant de pousser son objectId dans le tableau des favoris du user
-    if (!user.favorites.includes(offerId)) {
-      return res.json({ result: false, error: "L'offre n'est pas dans les favoris" });
-    }
+  if (!user.favorites.includes(offerId)) {
+    return res.json({
+      result: false,
+      error: "L'offre n'est pas dans les favoris",
+    });
+  }
   try {
     const result = await User.updateOne(
       { token: token },
@@ -263,7 +266,6 @@ router.put("/favorites/remove", async (req, res) => {
 });
 
 //IF findId is valid, then push offerId into array favorites from user
-
 
 router.post("/google-login", async (req, res) => {
   const { accessToken } = req.body;
@@ -336,25 +338,23 @@ router.post("/google-login", async (req, res) => {
     console.error("Google login error:", error);
     res.json({ result: false, error: "Server error during Google login" });
   }
-
-
 });
-
 
 router.delete("/:token", async (req, res) => {
   try {
-    const deletedUser = await User.findOneAndDelete({token: req.params.token});
+    const deletedUser = await User.findOneAndDelete({
+      token: req.params.token,
+    });
     if (!deletedUser) {
-      return res.status(404).json({ result: false, error: "Utilisateur non trouvé" });
+      return res
+        .status(404)
+        .json({ result: false, error: "Utilisateur non trouvé" });
     }
     res.json({ result: true, message: "Utilisateur supprimé" });
   } catch (error) {
     res.status(500).json({ result: false, error: "Erreur serveur" });
   }
 });
-
-
-
 
 router.post("/addPreferences", (req, res) => {
   const token = req.body.token;
@@ -387,7 +387,6 @@ router.post("/addPreferences", (req, res) => {
   });
 });
 
-
 router.get("/preferences/:token", async (req, res) => {
   const token = req.params.token;
   if (!token) {
@@ -395,23 +394,18 @@ router.get("/preferences/:token", async (req, res) => {
   }
 
   try {
-    const user = await User.find()
-      .findOne({ token })
+    const user = await User.find().findOne({ token });
     res.json({
       result: true,
       preferences: user.preferences,
     });
   } catch (error) {
     console.error("Error fetching user preferences:", error);
-    res.json({ result: false, error: "Erreur lors de la récupération des préférences" });
+    res.json({
+      result: false,
+      error: "Erreur lors de la récupération des préférences",
+    });
   }
-}
-);
-
-
-
-
-
-
+});
 
 module.exports = router;
