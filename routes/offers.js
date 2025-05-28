@@ -26,6 +26,14 @@ router.get("/", async (req, res) => {
           { description: { $regex: word, $options: "i" } },
         ]);
       }
+        if (pref.city) {
+        for (const c of city) {
+          if (c.insee === pref.city) {
+            filter.city = c.name;
+            break;
+          }
+        }
+      }
       return filter;
     });
 
