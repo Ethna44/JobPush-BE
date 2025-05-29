@@ -1,10 +1,12 @@
 var express = require("express");
 var router = express.Router();
+const mongoose = require("mongoose");
 require("../models/connection");
 const Offer = require("../models/offers.js");
 const User = require("../models/users.js");
 const { checkBody } = require("../modules/checkBody");
 const city = require("../modules/citie.json");
+const Application = require("../models/applications.js");
 
 router.get("/", async (req, res) => {
   const { offset, limit, userToken } = req.query;
@@ -26,7 +28,7 @@ router.get("/", async (req, res) => {
           { description: { $regex: word, $options: "i" } },
         ]);
       }
-        if (pref.city) {
+      if (pref.city) {
         for (const c of city) {
           if (c.insee === pref.city) {
             filter.city = c.name;
@@ -120,5 +122,42 @@ router.post("/add", (req, res) => {
       return;
     });
 });
+
+router.get("/test", (req, res) => {
+  res.json({ message: "✅ Route test ok" });
+});
+
+router.post("/applications", async (req, res) => {
+ 
+  const { token, offerId } = req.body;
+  
+  try {
+        console.log("✅ Route POST /offers/applications bien appelée");
+  console.log("🟡 Reçu dans req.body :", req.body);
+
+    const user = await User.findOne({ token });
+    if (!user) return res.json({ result: false, error: "Utilisateur non trouvé" });
+
+    // Évite les doublons
+    const exists = await Application.findOne({ userId: user._id, offerId });
+    if (exists) return res.json({ result: false, error: "Déjà candidaté à cette offre" });
+
+    const newApp = new Application({
+      userId: user._id,
+      offerId,
+    }); 
+
+    const savedApp = await newApp.save();
+
+    user.applications.push(savedApp._id);
+    await user.save();
+
+    res.json({ result: true, message: "Candidature créée", application: savedApp });
+  } catch (e) {
+    console.error(e);
+    res.json({ result: false, error: e.message });
+  }
+});
+
 
 module.exports = router;

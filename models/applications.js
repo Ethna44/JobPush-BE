@@ -1,20 +1,19 @@
 const mongoose = require("mongoose");
 const Offer = require("./offers");
+const User = require ("./users")
 
-const applicationSchema = mongoose.Schema({
-  Offer: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "offers",
-    },
-  ],
-  RecallDate: Date,
-  InterviewDate: Date,
-  Status: Boolean,
-  Notes: String,
-  TyLetterDate: Date,
+const applicationSchema = new mongoose.Schema({
+  offerId: { type: mongoose.Schema.Types.ObjectId, ref: "offers", required: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "users", required: true },
+  recallDate: { type: Date, default: null },
+  interviewDate: { type: Date, default: null },
+  TyLetterDate: { type: Date, default: null },
+  applicationDate: { type: Date, default: Date.now }, // ou null
+  status: { type: String, default: "en attente" },
+  notes: { type: String, default: "" },
 });
 
-const Application = mongoose.model("Applications", applicationSchema);
+
+const Application = mongoose.model("applications", applicationSchema);
 
 module.exports = Application;
