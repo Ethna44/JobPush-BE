@@ -50,6 +50,7 @@ router.get("/", async (req, res) => {
       // Si aucun critère, retourne {}
       return andFilter.length > 0 ? { $and: andFilter } : {};
     });
+  console.dir(filters, { depth: null });
 
   Offer.find({ $or: filters }) // Utilise les filtres construits
     .sort({ publicationDate: -1 })
