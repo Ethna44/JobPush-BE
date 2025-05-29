@@ -11,7 +11,6 @@ const addressSchema = mongoose.Schema({
  streetName: String,
  city: String,
  zipCode : String,
-
 });
 
 const preferencesSchema = mongoose.Schema({
