@@ -17,29 +17,39 @@ router.get("/", async (req, res) => {
   const filters = user.preferences
     .filter((pref) => pref.jobTitle) // tu peux affiner le filtre selon tes besoins
     .map((pref) => {
-      const filter = {};
-      if (pref.contractType) filter.contractType = pref.contractType;
+      const andFilter = [];
+
+      // Contrat
+      if (pref.contractType) {
+        andFilter.push({ contractType: pref.contractType });
+      }
+
+      // Titre ou description
       if (pref.jobTitle) {
         const words = pref.jobTitle.split(/\s+/).filter(Boolean);
-        filter.$or = words.flatMap((word) => [
-          { title: { $regex: word, $options: "i" } },
-          { description: { $regex: word, $options: "i" } },
-        ]);
+        andFilter.push({
+          $and: words.map((word) => ({
+            $or: [
+              { title: { $regex: word, $options: "i" } },
+              { description: { $regex: word, $options: "i" } },
+            ],
+          })),
+        });
       }
-        if (pref.city) {
+
+      // Ville
+      if (pref.city) {
         for (const c of city) {
           if (c.insee === pref.city) {
-            filter.city = c.name;
+            andFilter.push({ city: c.name });
             break;
           }
         }
       }
-      return filter;
-    });
 
-  if (filters.length === 0) {
-    return res.json({ offers: [] });
-  }
+      // Si aucun critère, retourne {}
+      return andFilter.length > 0 ? { $and: andFilter } : {};
+    });
 
   Offer.find({ $or: filters }) // Utilise les filtres construits
     .sort({ publicationDate: -1 })
