@@ -171,4 +171,21 @@ router.post("/applications", async (req, res) => {
 });
 
 
+router.get("/applications", async (req, res) => {
+  const { token } = req.query;
+
+  try {
+    const user = await User.findOne({ token });
+    if (!user) return res.json({ result: false, error: "Utilisateur non trouvé" });
+
+    const applications = await Application.find({ userId: user._id }).populate("offerId");
+
+    res.json({ result: true, applications });
+  } catch (e) {
+    console.error(e);
+    res.json({ result: false, error: e.message });
+  }
+});
+
+
 module.exports = router;
