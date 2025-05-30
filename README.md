@@ -24,12 +24,12 @@ MAIL_PASS='votre_mot_de_passe_application_gmail'
 > **Astuce** : Pour Gmail, créez un [mot de passe d’application](https://myaccount.google.com/apppasswords) si l’authentification à deux facteurs est activée.
 
 ### ✨ Fonctionnalités principales
-Navigation ongletée : Accueil, Offres, Candidatures, Astuces, Compte
-Authentification, inscription, gestion du profil
-Recherche et filtrage d’offres
-Gestion des candidatures et favoris
-Articles & astuces par tags
-Notifications personnalisées
+- Navigation ongletée : Accueil, Offres, Candidatures, Astuces, Compte
+- Authentification, inscription, gestion du profil
+- Recherche et filtrage d’offres
+- Gestion des candidatures et favoris
+- Articles & astuces par tags
+- Notifications personnalisées
 
 ### 🧰 Stack technique 
 - Node.js + Express
