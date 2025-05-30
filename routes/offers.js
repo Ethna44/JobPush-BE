@@ -15,12 +15,12 @@ router.get("/", async (req, res) => {
     return res.json({ offers: [] });
   } // Vérifie si l'utilisateur a des préférences
 
-  // Construit un tableau de filtres pour chaque préférence valide
+  console.log("preférences", user.preferences);
   const filters = user.preferences
-    .filter((pref) => pref.jobTitle) // tu peux affiner le filtre selon tes besoins
+    .filter((pref) => pref) // tu peux affiner le filtre selon tes besoins
     .map((pref) => {
       const andFilter = [];
-
+console.log(pref)
       // Contrat
       if (pref.contractType) {
         andFilter.push({ contractType: pref.contractType });
@@ -56,7 +56,8 @@ router.get("/", async (req, res) => {
       // Si aucun critère, retourne {}
       return andFilter.length > 0 ? { $and: andFilter } : {};
     });
-  console.dir(filters, { depth: null });
+  console.dir("filtre", filters, { depth: null });
+  console.log("filters construits:", JSON.stringify(filters, null, 2));
 
   Offer.find({ $or: filters }) // Utilise les filtres construits
     .sort({ publicationDate: -1 })
@@ -112,7 +113,7 @@ router.post("/add", (req, res) => {
           compagny: req.body.compagny,
           logoLink: req.body.logoLink,
           grade: req.body.grade,
-          sector:req.body.sector,
+          sector: req.body.sector,
           contractType: req.body.contractType,
           publicationDate: req.body.publicationDate,
           streetNumber: req.body.streetNumber,
@@ -200,19 +201,19 @@ router.get("/applications", async (req, res) => {
 });
 
 router.put("/applications/todo", async (req, res) => {
-  const { offerId , token } = req.query;
+  const { offerId, token } = req.query;
   try {
     const user = await User.findOne({ token });
     const application = await Application.findOne({
       userId: user._id,
       offerId: offerId,
     });
-    console.log(application)
+    console.log(application);
     if (!application) {
       return res.json({ result: false, error: "Offre non trouvé" });
     } else {
       Application.updateOne(
-        {userId: user._id, offerId },
+        { userId: user._id, offerId },
         {
           $set: {
             recallDate: req.body.recallDate,
@@ -231,7 +232,7 @@ router.put("/applications/todo", async (req, res) => {
     }
   } catch (e) {
     console.error(e);
-    res.json({ result: false, error: e.message, message :'marche pas'  });
+    res.json({ result: false, error: e.message, message: "marche pas" });
   }
 });
 
