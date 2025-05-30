@@ -5,9 +5,9 @@ const User = require ("./users")
 const applicationSchema = new mongoose.Schema({
   offerId: { type: mongoose.Schema.Types.ObjectId, ref: "offers", required: true },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "users", required: true },
-  recallDate: { type: Date, default: null },
-  interviewDate: { type: Date, default: null },
-  TyLetterDate: { type: Date, default: null },
+  recallDate: { type: String, default: null },
+  interviewDate: { type: String, default: null },
+  TyLetterDate: { type: String, default: null },
   applicationDate: { type: Date, default: Date.now }, // ou null
   status: { type: String, default: "en attente" },
   notes: { type: String, default: "" },

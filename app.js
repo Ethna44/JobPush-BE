@@ -1,4 +1,5 @@
 require("dotenv").config();
+require('./checkOffers');
 
 var express = require("express");
 var path = require("path");
