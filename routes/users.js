@@ -402,7 +402,7 @@ router.get("/preferences/:token", async (req, res) => {
     res.json({
       result: true,
       preferences: user.preferences,
-    });m
+    });
   } catch (error) {
     console.error("Error fetching user preferences:", error);
     res.json({

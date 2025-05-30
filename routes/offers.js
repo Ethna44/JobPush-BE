@@ -49,6 +49,10 @@ router.get("/", async (req, res) => {
         }
       }
 
+      if(pref.sector) {
+        andFilter.push({ sector: pref.sector });
+      }
+
       // Si aucun critère, retourne {}
       return andFilter.length > 0 ? { $and: andFilter } : {};
     });
@@ -80,6 +84,7 @@ router.post("/add", (req, res) => {
       "title",
       "compagny",
       "grade",
+      "sector",
       "contractType",
       "publicationDate",
       "streetNumber",
@@ -107,6 +112,7 @@ router.post("/add", (req, res) => {
           compagny: req.body.compagny,
           logoLink: req.body.logoLink,
           grade: req.body.grade,
+          sector:req.body.sector,
           contractType: req.body.contractType,
           publicationDate: req.body.publicationDate,
           streetNumber: req.body.streetNumber,
