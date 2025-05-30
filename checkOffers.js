@@ -8,7 +8,7 @@ const { sendOfferNotification } = require("./modules/mailer");
 // Stocke les IDs des offres déjà notifiées pour éviter les doublons
 let notifiedOfferIds = new Set();
 
-cron.schedule("* * * * *", async () => { // toutes les minutes
+cron.schedule("*/10 * * * *", async () => { // toutes les minutes
     try {
         console.log("⏰ Vérification des nouvelles offres...");
 
