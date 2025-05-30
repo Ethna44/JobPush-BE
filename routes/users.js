@@ -78,14 +78,18 @@ router.post("/signin", (req, res) => {
 
   const email = req.body.email.trim().toLowerCase(); //Pour limiter la casse
   //console.log(email);
-
-  User.findOne({ email }).then((data) => {
-    //console.log(data);
+ User.findOne({ email }).then((data) => {
     if (data && bcrypt.compareSync(req.body.password, data.password)) {
-      //console.log(data)
-      res.json({
-        result: true,
-        token: data.token,
+      const newToken = uid2(32);
+
+      User.findOneAndUpdate(
+        { email },
+        { token: newToken },
+        { new: true } // renvoie le user mis à jour
+      ).then((data) => {
+        res.json({
+          result: true,
+          token: newToken,
         email: data.email,
         firstName: data.firstName,
         name: data.name,
@@ -97,11 +101,29 @@ router.post("/signin", (req, res) => {
         applications: data.applications,
         msg: "Access Granted",
       });
+      });
     } else {
       res.json({ result: false, error: "User not found, or Invalid password" });
     }
   });
 });
+
+router.put("/logout", (req, res) => {
+  const token = req.body.token;
+
+  if (!token) {
+    return res.json({ result: false, error: "Missing token" });
+  }
+
+  User.findOneAndUpdate({ token }, { token: null }).then((user) => {
+    if (user) {
+      res.json({ result: true, message: "User logged out successfully" });
+    } else {
+      res.json({ result: false, error: "Invalid token" });
+    }
+  });
+});
+
 
 //récupérer les infos d'un utilisateur via son token
 router.get("/profile/:token", async (req, res) => {
@@ -126,6 +148,7 @@ router.get("/profile/:token", async (req, res) => {
     res.json({ result: false, error: error.message });
   }
 });
+
 
 router.put("/", (req, res) => {
   const token = req.body.token;
