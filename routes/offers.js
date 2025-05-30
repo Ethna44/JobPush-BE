@@ -20,7 +20,6 @@ router.get("/", async (req, res) => {
     .filter((pref) => pref) // tu peux affiner le filtre selon tes besoins
     .map((pref) => {
       const andFilter = [];
-console.log(pref)
       // Contrat
       if (pref.contractType) {
         andFilter.push({ contractType: pref.contractType });
