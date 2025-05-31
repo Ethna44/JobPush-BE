@@ -8,17 +8,17 @@ JobPush est une application mobile qui facilite la recherche d’emploi, la gest
 
 ### 🔧 Installation
 bash
-git clone https://github.com/<votre-org>/JobPush-BE.git
-cd JobPush-BE
-npm install
+- git clone https://github.com/<votre-org>/JobPush-BE.git
+- cd JobPush-BE
+- npm install
 
 
 ### ⚙️ Configuration
 Créez un fichier .env à la racine du projet avec :
 
-CONNECTION_STRING="mongodb+srv://<user>:<password>@<cluster>.mongodb.net/Jobpush"
-MAIL_USER='votre.email@gmail.com'
-MAIL_PASS='votre_mot_de_passe_application_gmail'
+- CONNECTION_STRING="mongodb+srv://<user>:<password>@<cluster>.mongodb.net/Jobpush"
+- MAIL_USER='votre.email@gmail.com'
+- MAIL_PASS='votre_mot_de_passe_application_gmail'
 
 
 > **Astuce** : Pour Gmail, créez un [mot de passe d’application](https://myaccount.google.com/apppasswords) si l’authentification à deux facteurs est activée.
