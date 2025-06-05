@@ -468,6 +468,6 @@ router.put("/preference/remove", async (req, res) => {
     console.error(e);
     res.json({ result: false, message: e.message });
   }
-});
+}); 
 
 module.exports = router;

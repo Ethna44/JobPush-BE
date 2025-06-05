@@ -31,7 +31,7 @@ const userSchema = mongoose.Schema({
   token: String,
   name: String,
   firstName: String,
-  phoneNumber: Number,
+  phoneNumber: String,
   address: [addressSchema], //Tableau de sous Documents pour permettre à l'utilisateur de pouvoir enregistrer plusieurs adresses.
   preferences: [preferencesSchema],
   alerts: String,
