@@ -15,7 +15,6 @@ router.get("/", async (req, res) => {
     return res.json({ offers: [] });
   } // Vérifie si l'utilisateur a des préférences
 
-  console.log("preférences", user.preferences);
   const filters = user.preferences
     .filter((pref) => pref) // tu peux affiner le filtre selon tes besoins
     .map((pref) => {
@@ -48,15 +47,13 @@ router.get("/", async (req, res) => {
         }
       }
 
-      if(pref.sector) {
+      if (pref.sector) {
         andFilter.push({ sector: pref.sector });
       }
 
       // Si aucun critère, retourne {}
       return andFilter.length > 0 ? { $and: andFilter } : {};
     });
-  console.dir("filtre", filters, { depth: null });
-  console.log("filters construits:", JSON.stringify(filters, null, 2));
 
   Offer.find({ $or: filters }) // Utilise les filtres construits
     .sort({ publicationDate: -1 })
@@ -84,7 +81,7 @@ router.post("/add", (req, res) => {
       "title",
       "compagny",
       "grade",
-      "sector",
+      // "sector",
       "contractType",
       "publicationDate",
       "streetNumber",
@@ -96,6 +93,7 @@ router.post("/add", (req, res) => {
       "description",
     ])
   ) {
+    console.error("post offers /add", "Missing or empty fields");
     res.json({ result: false, error: "Missing or empty fields" });
     return;
   }
@@ -104,6 +102,8 @@ router.post("/add", (req, res) => {
   Offer.findOne({ offerLink: req.body.offerLink })
     .then((data) => {
       if (data) {
+        console.error("post offers /add", "Offer already exists");
+
         // If the offer already exists, return an error
         res.json({ result: false, error: "Offer already exists" });
       } else {
@@ -135,6 +135,8 @@ router.post("/add", (req, res) => {
       }
     })
     .catch((error) => {
+      console.error("post offers /add", error.message);
+
       res.json({ result: false, error: error.message });
       return;
     });

@@ -3,6 +3,7 @@ function checkBody(body, keys) {
 
   for (const field of keys) {
     if (!body[field] || body[field] === '') {
+      console.log(body[field], field);
       isValid = false;
     }
   }
