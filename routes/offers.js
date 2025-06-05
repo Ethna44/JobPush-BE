@@ -1,13 +1,12 @@
 var express = require("express");
 var router = express.Router();
-const mongoose = require("mongoose");
-require("../models/connection");
-const Offer = require("../models/offers.js");
-const User = require("../models/users.js");
+const Offer = require("../models/offers");
+const User = require("../models/users");
 const { checkBody } = require("../modules/checkBody");
-const city = require("../modules/citie.json");
-const Application = require("../models/applications.js");
-
+const city = require("../modules/citie");
+const Application = require("../models/applications");
+ 
+//acéder à une ou plusieurs offres selon des critères
 router.get("/", async (req, res) => {
   const { offset, limit, userToken } = req.query;
   const user = await User.findOne({ token: userToken });
@@ -16,15 +15,15 @@ router.get("/", async (req, res) => {
   } // Vérifie si l'utilisateur a des préférences
 
   const filters = user.preferences
-    .filter((pref) => pref) // tu peux affiner le filtre selon tes besoins
+    .filter((pref) => pref)
     .map((pref) => {
       const andFilter = [];
-      // Contrat
+      // Type de cntrat
       if (pref.contractType) {
         andFilter.push({ contractType: pref.contractType });
       }
 
-      // Titre ou description
+      // Titre du poste ou description
       if (pref.jobTitle) {
         const words = pref.jobTitle.split(/\s+/).filter(Boolean);
         andFilter.push({
@@ -37,7 +36,7 @@ router.get("/", async (req, res) => {
         });
       }
 
-      // Ville
+      // Ville où se situe l'entreprise
       if (pref.city) {
         for (const c of city) {
           if (c.insee === pref.city) {
@@ -46,12 +45,12 @@ router.get("/", async (req, res) => {
           }
         }
       }
-
+       //Secteur d'activité
       if (pref.sector) {
         andFilter.push({ sector: pref.sector });
       }
 
-      // Si aucun critère, retourne {}
+      //Si aucun critère, retourne {}
       return andFilter.length > 0 ? { $and: andFilter } : {};
     });
 
@@ -64,7 +63,7 @@ router.get("/", async (req, res) => {
     });
 });
 
-//prends un tableau d'Ids et retourne les offres correspondantes
+//prends un tableau d'Id et retourne les offres correspondantes
 router.post("/byIds", async (req, res) => {
   const { ids } = req.body;
   if (!ids || !Array.isArray(ids)) return res.json({ offers: [] });
@@ -72,9 +71,9 @@ router.post("/byIds", async (req, res) => {
   res.json({ offers });
 });
 
-//ajouter une nouvelle offre dans la base de données
+//ajoute une nouvelle offre dans la base de données
 router.post("/add", (req, res) => {
-  // Check if the required fields are present
+  // Vérifie si les champs obligatoires sont présents
   if (
     !checkBody(req.body, [
       "title",
@@ -96,14 +95,14 @@ router.post("/add", (req, res) => {
     res.json({ result: false, error: "Missing or empty fields" });
     return;
   }
-  // Create a new offer
 
+  //Créé une nouvelle offre
   Offer.findOne({ offerLink: req.body.offerLink })
     .then((data) => {
       if (data) {
         console.error("post offers /add", "Offer already exists");
 
-        // If the offer already exists, return an error
+        //Si l'offre exise déjà, on retourne un message d'erreur
         res.json({ result: false, error: "Offer already exists" });
       } else {
         const newOffer = new Offer({
@@ -122,7 +121,7 @@ router.post("/add", (req, res) => {
           offerLink: req.body.offerLink,
           description: req.body.description,
         });
-        // Save the offer to the database
+        //Enregistre la nouvelle offre en base de données
         newOffer
           .save()
           .then(() => {
@@ -139,97 +138,6 @@ router.post("/add", (req, res) => {
       res.json({ result: false, error: error.message });
       return;
     });
-});
-
-router.get("/test", (req, res) => {
-  res.json({ message: "Route test ok" });
-});
-
-router.post("/applications", async (req, res) => {
-  const { token, offerId } = req.body;
-
-  try {
-    const user = await User.findOne({ token });
-    if (!user)
-      return res.json({ result: false, error: "Utilisateur non trouvé" });
-
-    // Évite les doublons
-    const exists = await Application.findOne({ userId: user._id, offerId });
-    if (exists)
-      return res.json({ result: false, error: "Déjà candidaté à cette offre" });
-
-    const newApp = new Application({
-      userId: user._id,
-      offerId,
-    });
-
-    const savedApp = await newApp.save();
-
-    user.applications.push(savedApp._id);
-    await user.save();
-
-    res.json({
-      result: true,
-      message: "Candidature créée",
-      application: savedApp,
-    });
-  } catch (e) {
-    console.error(e);
-    res.json({ result: false, error: e.message });
-  }
-});
-
-router.get("/applications", async (req, res) => {
-  const { token } = req.query;
-
-  try {
-    const user = await User.findOne({ token });
-    if (!user)
-      return res.json({ result: false, error: "Utilisateur non trouvé" });
-
-    const applications = await Application.find({ userId: user._id }).populate(
-      "offerId"
-    );
-    res.json({ result: true, applications });
-  } catch (e) {
-    console.error(e);
-    res.json({ result: false, error: e.message });
-  }
-});
-
-router.put("/applications/todo", async (req, res) => {
-  const { offerId, token } = req.query;
-  try {
-    const user = await User.findOne({ token });
-    const application = await Application.findOne({
-      userId: user._id,
-      offerId: offerId,
-    });
-    if (!application) {
-      return res.json({ result: false, error: "Offre non trouvé" });
-    } else {
-      Application.updateOne(
-        { userId: user._id, offerId },
-        {
-          $set: {
-            recallDate: req.body.recallDate,
-            interviewDate: req.body.interviewDate,
-            TyLetterDate: req.body.TyLetterDate,
-            notes: req.body.notes,
-            status: req.body.status,
-          },
-        }
-      ).then((application) => {
-        if (!application || application.modifiedCount === 0) {
-          return res.json({ result: false, message: "Candidature modifiée" });
-        }
-        res.json({ result: true, message: "Candidature bien modifié" });
-      });
-    }
-  } catch (e) {
-    console.error(e);
-    res.json({ result: false, error: e.message, message: "marche pas" });
-  }
 });
 
 module.exports = router;
