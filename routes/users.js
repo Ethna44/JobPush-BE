@@ -77,7 +77,6 @@ router.post("/signin", (req, res) => {
   }
 
   const email = req.body.email.trim().toLowerCase(); //Pour limiter la casse
-  //console.log(email);
  User.findOne({ email }).then((data) => {
     if (data && bcrypt.compareSync(req.body.password, data.password)) {
       const newToken = uid2(32);
@@ -164,7 +163,6 @@ router.put("/", (req, res) => {
       message: "Veuillez verifier les champs obligatoires",
     });
   }
-  //console.log(req.body);
 
   User.updateOne(
     { token },

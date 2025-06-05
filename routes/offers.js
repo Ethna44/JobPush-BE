@@ -15,7 +15,6 @@ router.get("/", async (req, res) => {
     return res.json({ offers: [] });
   } // Vérifie si l'utilisateur a des préférences
 
-  console.log("preférences", user.preferences);
   const filters = user.preferences
     .filter((pref) => pref) // tu peux affiner le filtre selon tes besoins
     .map((pref) => {
@@ -55,8 +54,6 @@ router.get("/", async (req, res) => {
       // Si aucun critère, retourne {}
       return andFilter.length > 0 ? { $and: andFilter } : {};
     });
-  console.dir("filtre", filters, { depth: null });
-  console.log("filters construits:", JSON.stringify(filters, null, 2));
 
   Offer.find({ $or: filters }) // Utilise les filtres construits
     .sort({ publicationDate: -1 })
@@ -70,7 +67,6 @@ router.get("/", async (req, res) => {
 //prends un tableau d'Ids et retourne les offres correspondantes
 router.post("/byIds", async (req, res) => {
   const { ids } = req.body;
-  // //console.log("ids", ids, req.body);
   if (!ids || !Array.isArray(ids)) return res.json({ offers: [] });
   const offers = await Offer.find({ _id: { $in: ids } });
   res.json({ offers });
@@ -141,16 +137,13 @@ router.post("/add", (req, res) => {
 });
 
 router.get("/test", (req, res) => {
-  res.json({ message: "✅ Route test ok" });
+  res.json({ message: "Route test ok" });
 });
 
 router.post("/applications", async (req, res) => {
   const { token, offerId } = req.body;
 
   try {
-    console.log("✅ Route POST /offers/applications bien appelée");
-    console.log("🟡 Reçu dans req.body :", req.body);
-
     const user = await User.findOne({ token });
     if (!user)
       return res.json({ result: false, error: "Utilisateur non trouvé" });
@@ -207,7 +200,6 @@ router.put("/applications/todo", async (req, res) => {
       userId: user._id,
       offerId: offerId,
     });
-    console.log(application);
     if (!application) {
       return res.json({ result: false, error: "Offre non trouvé" });
     } else {
