@@ -4,7 +4,7 @@ const User = require("../models/users");
 const Application = require("../models/applications");
 
 //créé un document application (candidature) à partir d'une offre
-router.post("/applications", async (req, res) => {
+router.post("/", async (req, res) => {
   const { token, offerId } = req.body;
   try {
     const user = await User.findOne({ token });
@@ -38,7 +38,7 @@ router.post("/applications", async (req, res) => {
 });
 
 //récupérer les candidatures d'un utilisateur
-router.get("/applications", async (req, res) => {
+router.get("/", async (req, res) => {
   const { token } = req.query;
 
   try {
@@ -57,7 +57,7 @@ router.get("/applications", async (req, res) => {
 });
 
 //modifie la todo list d'une candidature
-router.put("/applications/todo", async (req, res) => {
+router.put("/todo", async (req, res) => {
   const { offerId, token } = req.query;
   try {
     const user = await User.findOne({ token });
@@ -88,7 +88,7 @@ router.put("/applications/todo", async (req, res) => {
     }
   } catch (e) {
     console.error(e);
-    res.json({ result: false, error: e.message, message: "marche pas" });
+    res.json({ result: false, error: e.message });
   }
 });
 
