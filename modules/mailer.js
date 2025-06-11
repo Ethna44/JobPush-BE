@@ -13,12 +13,16 @@ const transporter = nodemailer.createTransport({
 }
 });
 
-function sendOfferNotification(to, offer) {
+function sendOfferNotification(to, offers) {
+  let offersText = offers.map(offer =>
+    `Titre : ${offer.title}\nDescription : ${offer.description}\nLien : ${offer.offerLink}\n`
+  ).join('\n---------------------\n');//pour les séparer par une ligne = améliorer la lisibilité
+
   return transporter.sendMail({
     from: process.env.MAIL_USER,
-    to, 
-    subject: `Une nouvelle offre pour toi !`,
-    text: `Hello,\nVoici une offre qui pourrait t'intéresser !\nTitre : ${offer.title}\nDescription : ${offer.description}\nLien : ${offer.offerLink}\n\nMerci pour ta confiance et à bientôt sur JobPush !\nOn croise les doigts pour la suite de ta recherche d'emploi\n\nEthan, Tiago et Marion de JobPush`,
+    to,
+    subject: `Tes nouvelles offres du jour !`,
+    text: `Hello,\nVoici les offres qui pourraient t'intéresser aujourd'hui :\n\n${offersText}\nMerci pour ta confiance et à bientôt sur JobPush !\nOn croise les doigts pour la suite de ta recherche d'emploi\n\nEthan, Tiago et Marion de JobPush`,
   });
 }
 
