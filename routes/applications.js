@@ -81,7 +81,7 @@ router.put("/todo", async (req, res) => {
         }
       ).then((application) => {
         if (!application || application.modifiedCount === 0) {
-          return res.json({ result: false, message: "Candidature modifiée" });
+          return res.json({ result: false, message: "Candidature non modifiée" });
         }
         res.json({ result: true, message: "Candidature bien modifié" });
       });
